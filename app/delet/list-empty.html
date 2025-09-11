@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <title>Compra da Semana</title>
+    <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <link rel="stylesheet" href="style.css"> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="app-header">
+            <a href="list-created.html" class="back-button">←</a>
+            <h1>Compra da semana</h1>
+        </header>
+        <main class="main-content">
+            <div class="progress-details">
+                <p class="label">Progresso</p>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 0%;"></div></div>
+                <div class="progress-numbers">
+                    <span>0 itens concluídos</span><span>0 itens total</span>
+                </div>
+            </div>
+            <div class="list-date-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                Criada em 24/08/2025
+            </div>
+            <div class="empty-list-state">
+                <div class="icon-wrapper">+</div>
+                <h3>Lista vazia</h3>
+                <p>Adicione itens à sua lista para começar</p>
+            </div>
+        </main>
+        <a href="#add-item-modal" class="fab">+</a>
+
+        <div id="add-item-modal" class="modal-overlay">
+            <div class="modal-content">
+                <form action="list-with-item.html">
+                    <div class="modal-header"><h2>Adicionar Item</h2><a href="#" class="close-button">&times;</a></div>
+                    <div class="modal-body">
+                        <div class="form-group"><label class="form-label">Nome do Item</label><input type="text" value="Leite"></div>
+                        <div class="form-group"><label class="form-label">Quantidade</label><input type="number" value="1"></div>
+                        <div class="form-group"><label class="form-label">Preço (opcional)</label><input type="text" value="4.50"></div>
+                        <div class="form-group"><label class="form-label">Marca (opcional)</label><input type="text" value="Nestle"></div>
+                        <div class="form-group"><label class="form-label">Observações (opcional)</label><textarea>Validade: 25/09/2025</textarea></div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Adicionar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

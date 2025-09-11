@@ -1,0 +1,331 @@
+// Espera o HTML carregar completamente para começar a rodar o script
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- SELETORES DE ELEMENTOS ---
+    // Pega referências dos principais elementos da página para não ter que procurá-los toda hora
+    const screens = document.querySelectorAll('.screen');
+    const homeScreen = document.getElementById('home-screen');
+    const listScreen = document.getElementById('list-screen');
+    const homeMainContent = document.getElementById('home-main-content');
+    const listMainContent = document.getElementById('list-main-content');
+    const listTitleHeader = document.getElementById('list-title-header');
+    
+    // Modais e formulários
+    const createListModal = document.getElementById('create-list-modal');
+    const addItemModal = document.getElementById('add-item-modal');
+    const createListForm = document.getElementById('create-list-form');
+    const addItemForm = document.getElementById('add-item-form');
+
+    // Botões
+    const addListFab = document.getElementById('add-list-fab');
+    const addItemFab = document.getElementById('add-item-fab');
+    const backButton = document.querySelector('.back-button');
+    const closeModalBtns = document.querySelectorAll('.close-modal-btn');
+
+    // --- ESTADO DA APLICAÇÃO ---
+    // Guarda todos os dados. Em um app real, isso viria de um banco de dados.
+    let state = {
+        lists: [],
+        currentListId: null, // Guarda o ID da lista que estamos vendo
+    };
+
+    // --- FUNÇÕES DE DADOS (salvar e carregar) ---
+    function saveData() {
+        // Converte nosso objeto de dados para texto e salva no localStorage do navegador
+        localStorage.setItem('geoRemindData', JSON.stringify(state));
+    }
+
+    function loadData() {
+        // Pega os dados salvos. Se não houver nada, usa o estado inicial.
+        const savedData = localStorage.getItem('geoRemindData');
+        if (savedData) {
+            state = JSON.parse(savedData);
+        }
+    }
+
+    // --- FUNÇÕES DE RENDERIZAÇÃO (desenhar a tela) ---
+
+    // Função principal que redesenha tudo
+    function render() {
+        if (state.currentListId) {
+            renderListView();
+            showScreen('list-screen');
+        } else {
+            renderHomeScreen();
+            showScreen('home-screen');
+        }
+    }
+
+    function renderHomeScreen() {
+        // Limpa o conteúdo atual da tela inicial
+        homeMainContent.innerHTML = '';
+        
+        if (state.lists.length === 0) {
+            // Mostra a tela de boas-vindas se não houver listas
+            homeMainContent.innerHTML = `
+                <div class="welcome-section" style="text-align: center; padding-top: 80px;">
+                    <div class="icon-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3"/><path d="M16 5c-1.5 0-3 1.5-3 3v0h6v0c0-1.5-1.5-3-3-3Z"/></svg>
+                    </div>
+                    <h2>Bem-vindo ao GeoRemind!</h2>
+                    <p>Crie sua primeira lista clicando no botão '+' abaixo.</p>
+                </div>`;
+            return;
+        }
+
+        // Calcula os totais
+        const totalItems = state.lists.reduce((sum, list) => sum + list.items.length, 0);
+
+        // Cria os cards de resumo
+        const summaryHtml = `
+            <div class="summary-grid">
+                <div class="summary-card primary">
+                    <p class="value">${state.lists.length}</p><p class="label">Listas criadas</p>
+                </div>
+                <div class="summary-card">
+                    <p class="value">${totalItems}</p><p class="label">Total de itens</p>
+                </div>
+            </div>`;
+        
+        // Cria os cards de cada lista
+        const listsHtml = state.lists.map(list => {
+            const completedItems = list.items.filter(item => item.completed).length;
+            const progress = list.items.length > 0 ? (completedItems / list.items.length) * 100 : 0;
+            return `
+                <div class="list-card" data-list-id="${list.id}">
+                    <div class="list-header">
+                        <h3>${list.title}</h3>
+                        <button class="options-btn" data-delete-list-id="${list.id}">⋮</button>
+                    </div>
+                    <div class="list-meta">
+                        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12 11.5A2.5 2.5 0 0 1 9.5 9A2.5 2.5 0 0 1 12 6.5A2.5 2.5 0 0 1 14.5 9a2.5 2.5 0 0 1-2.5 2.5M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"/></svg>
+                        <span>${list.description || 'Sem descrição'}</span>
+                    </div>
+                    <div class="progress-info">
+                        <span>${completedItems} de ${list.items.length} itens</span>
+                        <span>${Math.round(progress)}%</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${progress}%;"></div></div>
+                    <div class="list-date">
+                        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                        ${list.createdAt}
+                    </div>
+                </div>`;
+        }).join('');
+
+        homeMainContent.innerHTML = summaryHtml + listsHtml;
+    }
+    
+    function renderListView() {
+        const list = state.lists.find(l => l.id === state.currentListId);
+        if (!list) return;
+
+        listTitleHeader.textContent = list.title;
+        
+        const completedItemsCount = list.items.filter(item => item.completed).length;
+        const totalItemsCount = list.items.length;
+        const progress = totalItemsCount > 0 ? (completedItemsCount / totalItemsCount) * 100 : 0;
+
+        const pendingItems = list.items.filter(item => !item.completed);
+        const completedItems = list.items.filter(item => item.completed);
+        
+        let itemsHtml = '';
+
+        if (totalItemsCount === 0) {
+            itemsHtml = `<div class="empty-list-state">
+                <div class="icon-wrapper">+</div>
+                <h3>Lista vazia</h3>
+                <p>Adicione itens à sua lista para começar</p>
+            </div>`;
+        } else {
+            if (pendingItems.length > 0) {
+                itemsHtml += `<h2 class="item-list-header">Pendentes (${pendingItems.length})</h2>`;
+                itemsHtml += pendingItems.map(item => renderItem(item)).join('');
+            }
+            if (completedItems.length > 0) {
+                itemsHtml += `<h2 class="item-list-header">Concluídos (${completedItems.length})</h2>`;
+                itemsHtml += completedItems.map(item => renderItem(item)).join('');
+            }
+        }
+
+        listMainContent.innerHTML = `
+            <div class="progress-details">
+                <p class="label">Progresso</p>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${progress}%;"></div></div>
+                <div class="progress-numbers">
+                    <span>${completedItemsCount} itens concluídos</span>
+                    <span>${totalItemsCount} itens total</span>
+                </div>
+            </div>
+            <div class="list-date-tag">Criada em ${list.createdAt}</div>
+            <div id="items-container">${itemsHtml}</div>`;
+    }
+
+    function renderItem(item) {
+        return `
+            <div class="item-card ${item.completed ? 'completed' : ''}" data-item-id="${item.id}">
+                <div class="checkbox ${item.completed ? 'completed' : ''}" data-item-id="${item.id}">
+                    ${item.completed ? '<svg width="14" height="14" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="3" d="m5 13 4 4L19 7"/></svg>' : ''}
+                </div>
+                <div class="item-content">
+                    <p class="title">${item.name}</p>
+                    <div class="item-details">
+                        <span class="detail-tag">Quantidade: ${item.quantity}</span>
+                        ${item.price ? `<span class="detail-tag">$ R$ ${item.price}</span>` : ''}
+                        ${item.brand ? `<span class="detail-tag">${item.brand}</span>` : ''}
+                        ${item.notes ? `<span class="detail-tag">Obs.</span>` : ''}
+                    </div>
+                </div>
+                <button class="options-btn" data-delete-item-id="${item.id}">⋮</button>
+            </div>`;
+    }
+
+
+    // --- FUNÇÕES DE NAVEGAÇÃO E MODAIS ---
+    function showScreen(screenId) {
+        screens.forEach(screen => {
+            screen.classList.toggle('active', screen.id === screenId);
+        });
+    }
+
+    function openModal(modal) {
+        // Popula o modal de criar lista com as opções
+        if (modal.id === 'create-list-modal') {
+             modal.querySelector('.modal-body').innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Tipo de Lista</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="list-type" value="compras" checked>
+                            <div class="radio-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><path d="M14 20h-4"/><path d="M10 4V2"/><path d="M14 4V2"/></svg></div>
+                            <div class="radio-text"><span class="radio-title">Lista de Compras</span><span class="radio-subtitle">Para mercado e compras</span></div>
+                        </label>
+                         <label class="radio-option">
+                            <input type="radio" name="list-type" value="tarefas">
+                            <div class="radio-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 11 4 4 6-6"/></svg></div>
+                            <div class="radio-text"><span class="radio-title">Lista de Tarefas</span><span class="radio-subtitle">Tarefas e afazeres</span></div>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="list-type" value="eventos">
+                            <div class="radio-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div>
+                            <div class="radio-text"><span class="radio-title">Eventos</span><span class="radio-subtitle">Compromissos e eventos</span></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Título</label>
+                    <input type="text" name="title" placeholder="Ex: Supermercado da semana" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descrição (opcional)</label>
+                    <input type="text" name="description" placeholder="Adicione uma descrição...">
+                </div>
+            `;
+        }
+        modal.classList.add('visible');
+    }
+
+    function closeModal(modal) {
+        modal.classList.remove('visible');
+    }
+
+    // --- EVENT LISTENERS (interatividade) ---
+    
+    addListFab.addEventListener('click', () => openModal(createListModal));
+    addItemFab.addEventListener('click', () => openModal(addItemModal));
+
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            closeModal(createListModal);
+            closeModal(addItemModal);
+        });
+    });
+
+    createListForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(createListForm);
+        const newList = {
+            id: `list-${Date.now()}`,
+            title: formData.get('title'),
+            description: formData.get('description'),
+            type: formData.get('list-type'),
+            createdAt: new Date().toLocaleDateString('pt-BR'),
+            items: []
+        };
+        state.lists.push(newList);
+        saveData();
+        render();
+        closeModal(createListModal);
+        createListForm.reset();
+    });
+
+    addItemForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(addItemForm);
+        const newItem = {
+            id: `item-${Date.now()}`,
+            name: formData.get('name'),
+            quantity: formData.get('quantity'),
+            price: formData.get('price'),
+            brand: formData.get('brand'),
+            notes: formData.get('notes'),
+            completed: false,
+        };
+        const currentList = state.lists.find(l => l.id === state.currentListId);
+        currentList.items.push(newItem);
+        saveData();
+        render();
+        closeModal(addItemModal);
+        addItemForm.reset();
+    });
+    
+    homeMainContent.addEventListener('click', (e) => {
+        const listCard = e.target.closest('.list-card');
+        const deleteBtn = e.target.closest('[data-delete-list-id]');
+
+        if (deleteBtn) {
+            e.stopPropagation();
+            if (confirm('Tem certeza que quer apagar esta lista?')) {
+                state.lists = state.lists.filter(l => l.id !== deleteBtn.dataset.deleteListId);
+                saveData();
+                render();
+            }
+        } else if (listCard) {
+            state.currentListId = listCard.dataset.listId;
+            render();
+        }
+    });
+
+    listMainContent.addEventListener('click', (e) => {
+        const checkbox = e.target.closest('.checkbox');
+        const deleteBtn = e.target.closest('[data-delete-item-id]');
+        
+        if (checkbox) {
+            const itemId = checkbox.dataset.itemId;
+            const list = state.lists.find(l => l.id === state.currentListId);
+            const item = list.items.find(i => i.id === itemId);
+            item.completed = !item.completed;
+            saveData();
+            render();
+        } else if (deleteBtn) {
+             if (confirm('Tem certeza que quer apagar este item?')) {
+                const itemId = deleteBtn.dataset.deleteItemId;
+                const list = state.lists.find(l => l.id === state.currentListId);
+                list.items = list.items.filter(i => i.id !== itemId);
+                saveData();
+                render();
+            }
+        }
+    });
+
+    backButton.addEventListener('click', () => {
+        state.currentListId = null;
+        render();
+    });
+
+
+    // --- INICIALIZAÇÃO ---
+    // Carrega os dados e desenha a tela pela primeira vez
+    loadData();
+    render();
+});

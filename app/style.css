@@ -1,0 +1,141 @@
+/* --- Configurações Globais --- */
+:root {
+    --primary-purple: #7159c1;
+    --light-purple: #f1efff;
+    --green-progress: #2ecc71;
+    --dark-text: #2c3e50;
+    --light-text: #7f8c8d;
+    --background-gray: #f5f5f5;
+    --border-color: #e0e0e0;
+    --white: #ffffff;
+    --card-background: #fafafa;
+    --danger-red: #e74c3c;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-gray);
+    color: var(--dark-text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+/* --- Container e Telas --- */
+.mobile-container {
+    width: 100%;
+    max-width: 400px;
+    height: 844px;
+    background-color: var(--white);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s;
+}
+.screen.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- Cabeçalho --- */
+.app-header {
+    text-align: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--white);
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.app-header h1 { font-size: 18px; font-weight: 500; margin: 0; }
+.back-button { position: absolute; left: 16px; font-size: 24px; background: none; border: none; cursor: pointer; }
+
+/* --- Conteúdo Principal e FAB --- */
+.main-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: var(--background-gray);
+    padding: 24px;
+}
+.fab {
+    position: absolute; bottom: 25px; right: 25px; width: 60px; height: 60px;
+    background-color: var(--primary-purple); border: none; border-radius: 50%;
+    color: var(--white); font-size: 36px; font-weight: 300;
+    display: flex; justify-content: center; align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); cursor: pointer;
+    transition: all 0.2s ease; z-index: 20;
+}
+.fab:hover { background-color: #5a43a1; transform: scale(1.05); }
+
+/* --- Modal --- */
+.modal-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center; align-items: center; z-index: 1000;
+    opacity: 0; transition: opacity 0.3s ease-in-out;
+}
+.modal-overlay.visible { display: flex; opacity: 1; }
+.modal-content {
+    background-color: var(--white); border-radius: 16px; width: 90%;
+    max-width: 380px; max-height: 90%; display: flex; flex-direction: column;
+    transform: scale(0.95); transition: transform 0.3s ease-in-out;
+}
+.modal-overlay.visible .modal-content { transform: scale(1); }
+/* Header, Body, Footer, Form e Botões do Modal (sem alterações da última vez) */
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; }
+.modal-header h2 { margin: 0; font-size: 20px; }
+.close-modal-btn { background: none; border: none; font-size: 28px; font-weight: 300; cursor: pointer; color: var(--light-text); }
+.modal-body { padding: 0 24px 24px 24px; overflow-y: auto; }
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-weight: 500; margin-bottom: 10px; font-size: 16px; }
+input[type="text"], input[type="number"], textarea { width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+input::placeholder, textarea::placeholder { color: #bdc3c7; }
+textarea { resize: vertical; min-height: 80px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 20px 24px; border-top: 1px solid var(--border-color); }
+.btn { padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: opacity 0.2s ease; border:none; }
+.btn:hover { opacity: 0.85; }
+.btn-primary { background-color: var(--primary-purple); color: var(--white); }
+.btn-secondary { background-color: #ecf0f1; color: var(--dark-text); }
+
+/* Radio Buttons Customizados */
+.radio-group { display: flex; flex-direction: column; gap: 10px; }
+.radio-option { display: flex; align-items: center; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; cursor: pointer; transition: all 0.2s ease; }
+.radio-option input[type="radio"] { display: none; }
+.radio-icon-wrapper { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; background-color: var(--light-purple); color: var(--primary-purple); transition: all 0.2s ease; }
+.radio-text { display: flex; flex-direction: column; }
+.radio-title { font-weight: 500; }
+.radio-subtitle { font-size: 14px; color: var(--light-text); }
+.radio-option:has(input:checked) { border-color: var(--primary-purple); background-color: var(--light-purple); }
+.radio-option:has(input:checked) .radio-icon-wrapper { background-color: var(--primary-purple); color: var(--white); }
+.radio-option:has(input:checked) .radio-icon-wrapper svg { stroke: var(--white); }
+.radio-option:has(input:checked) .radio-title { color: var(--primary-purple); }
+
+
+/* --- ESTILOS DAS PÁGINAS (sem alterações da última vez) --- */
+.summary-grid, .list-card, .progress-details, .item-card, .empty-list-state {
+    /* Todos os estilos anteriores para estes componentes permanecem aqui */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* (Cole aqui os estilos da resposta anterior para .summary-grid, .list-card, etc.) */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}.summary-card{background-color:var(--white);padding:16px;border-radius:12px;border:1px solid var(--border-color)}.summary-card.primary{background-color:var(--primary-purple);color:var(--white);border:none}.summary-card .value{font-size:28px;font-weight:700;margin:0}.summary-card .label{font-size:14px;margin:0;opacity:.9}.list-card{background-color:var(--card-background);padding:20px;border-radius:12px;border:1px solid #efefef;position:relative;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}.list-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.08)}.list-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}.list-header h3{margin:0;font-size:18px}.list-header .options-btn{background:0 0;border:none;cursor:pointer;font-size:20px;color:var(--light-text)}.list-meta{display:flex;align-items:center;gap:8px;color:var(--light-text);font-size:14px;margin-bottom:12px}.progress-info{display:flex;justify-content:space-between;font-size:12px;color:var(--light-text);margin-bottom:6px}.progress-bar-bg{width:100%;height:6px;background-color:var(--border-color);border-radius:3px;margin-bottom:16px;overflow:hidden}.progress-bar-fill{height:100%;background-color:var(--green-progress);border-radius:3px;transition:width .4s ease}.list-date{display:inline-flex;align-items:center;gap:6px;background-color:#e9e9e9;padding:4px 8px;border-radius:6px;font-size:12px;color:var(--dark-text)}.progress-details{background-color:var(--white);padding:16px;border-radius:12px;margin-bottom:24px}.progress-details .label{font-size:16px;margin-bottom:12px}.progress-details .progress-bar-bg{margin-bottom:8px}.progress-details .progress-bar-fill{background-color:var(--primary-purple)}.progress-details .progress-numbers{display:flex;justify-content:space-between;font-size:14px;color:var(--light-text)}.list-date-tag{display:inline-flex;align-items:center;gap:6px;background-color:#eaeaea;padding:6px 10px;border-radius:16px;font-size:12px;color:var(--dark-text);margin-bottom:24px}.item-list-header{font-size:18px;font-weight:700;margin-bottom:16px}.empty-list-state{text-align:center;padding-top:60px}.empty-list-state .icon-wrapper{width:60px;height:60px;border:2px dashed var(--border-color);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px auto;color:var(--light-text);font-size:28px}.empty-list-state h3{font-size:20px;margin:0 0 8px 0}.empty-list-state p{color:var(--light-text);margin:0}.item-card{background-color:var(--white);padding:16px;border-radius:12px;display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}.item-card .checkbox{width:22px;height:22px;border:2px solid var(--border-color);border-radius:6px;margin-top:2px;cursor:pointer;transition:all .2s ease}.item-card .checkbox.completed{background-color:var(--primary-purple);border-color:var(--primary-purple);display:flex;align-items:center;justify-content:center}.item-card .checkbox.completed svg{stroke:var(--white)}.item-content{flex:1}.item-content .title{font-size:16px;font-weight:500;transition:color .2s ease}.item-card.completed .title{text-decoration:line-through;color:var(--light-text)}.item-details{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.item-details .detail-tag{display:inline-flex;align-items:center;gap:4px;background-color:var(--background-gray);padding:4px 8px;border-radius:6px;font-size:12px;color:var(--light-text)}.item-card .options-btn{margin-left:auto;color:var(--light-text);padding:0 4px}
