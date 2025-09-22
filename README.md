@@ -37,7 +37,7 @@ The goal is to reduce cognitive load and make life easier by reminding you at th
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/limbrei.git
+   git clone https://github.com/Arthurbric/Lembrei.git
    cd limbrei
    ```
 2. Install dependencies:
@@ -74,8 +74,6 @@ The goal is to reduce cognitive load and make life easier by reminding you at th
 ## Contributing 🤝
 
 Contributions are welcome! Please fork this repo, make changes, and submit a pull request.
-
----
 
 ## License
 
