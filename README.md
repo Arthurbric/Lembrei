@@ -1,50 +1,84 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+---
 
-## Get started
+# Limbrei 🧠✨
 
-1. Install dependencies
+*A smart reminder app designed for people with ADHD — because remembering shouldn’t be harder than the task itself.*
+
+## Overview
+
+Limbrei is a **context-aware reminder application** that helps people with ADHD manage daily tasks.
+Unlike traditional reminder apps, Limbrei uses **location-based triggers** to deliver reminders when and where they’re most useful.
+
+For example:
+
+* 🛒 At the market → *“Don’t forget to buy milk.”*
+* 🏠 At home → *“Take out the trash before 8 PM.”*
+* 🏫 At school/work → *“Submit the assignment today.”*
+
+The goal is to reduce cognitive load and make life easier by reminding you at the right place and time.
+
+---
+
+## Features
+
+✅ **Location-based reminders** – tasks pop up when you’re in the right spot.
+✅ **Clean, distraction-free UI** – designed for ADHD-friendly focus.
+✅ **Customizable tasks** – set your own reminders with notes and priorities.
+✅ **Smart notifications** – delivered gently but persistently so they don’t get lost.
+✅ **Cross-device sync** *(planned)* – access reminders on phone, tablet, or desktop.
+
+---
+
+## Installation
+
+*(Adjust depending on your tech stack — for now, keeping it generic)*
+
+1. Clone the repository:
 
    ```bash
-   npm install
+   git clone https://github.com/your-username/limbrei.git
+   cd limbrei
    ```
-
-2. Start the app
+2. Install dependencies:
 
    ```bash
-   npx expo start
+   npm install   # or yarn install
+   ```
+3. Start the app:
+
+   ```bash
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Usage
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+1. Open Limbrei on your device.
+2. Add a new reminder with a location (home, work, store, etc.).
+3. Get reminded automatically when you’re there.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Roadmap 🚀
 
-```bash
-npm run reset-project
-```
+* [ ] Dark mode for better focus
+* [ ] Integration with Google Maps / Apple Maps
+* [ ] Calendar sync (Google Calendar, Outlook, iCal)
+* [ ] Wearable support (Apple Watch, WearOS)
+* [ ] AI suggestions for recurring tasks
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## Contributing 🤝
 
-To learn more about developing your project with Expo, look at the following resources:
+Contributions are welcome! Please fork this repo, make changes, and submit a pull request.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## License
 
-Join our community of developers creating universal apps.
+MIT License © 2025
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
