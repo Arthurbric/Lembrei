@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "lembrei1",
-    "slug": "lembrei1",
+    "name": "Lembrei0.0.1",
+    "slug": "Lembrei0.0.1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "lembrei1",
+    "scheme": "Lembrei0.0.1",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -9,7 +8,10 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  StatusBar,
+  Platform 
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   List,
@@ -246,7 +248,7 @@ export default function App() {
   const currentList = lists.find(l => l.id === currentListId);
   
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.appHeader}>
         {currentScreen === 'list' && (
           <Pressable onPress={navigateToHome} style={styles.backButton}>
