@@ -11,7 +11,7 @@ import {
   StatusBar,
   Platform 
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   List,
@@ -19,11 +19,16 @@ import {
   ArrowLeft,
   Trash2,
   Check,
-  X, // Using X for the close button
+  X,
+  Calendar as CalendarIcon,
+  BellOff,
+  Clock,
+  MapPin,
 } from 'lucide-react-native';
 
 // --- COMPONENT PRINCIPAL DA APLICAÇÃO ---
 export default function App() {
+  const insets = useSafeAreaInsets();
   // --- ESTADO DA APLICAÇÃO ---
   const [lists, setLists] = useState([]);
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -31,6 +36,7 @@ export default function App() {
   const [isCreateListModalVisible, setCreateListModalVisible] = useState(false);
   const [isAddItemModalVisible, setAddItemModalVisible] = useState(false);
   const [newListName, setNewListName] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
   const [newItemName, setNewItemName] = useState('');
 
   // --- PERSISTÊNCIA DE DADOS ---
@@ -68,12 +74,13 @@ export default function App() {
     const newList = {
       id: `list-${Date.now()}`,
       title: newListName,
+      description: newListDescription.trim(),
       createdAt: new Date().toLocaleDateString('pt-BR'),
       items: [],
     };
     setLists((prevLists) => [...prevLists, newList]);
     setNewListName('');
-    setCreateListModalVisible(false);
+    handleCloseCreateListModal();
   };
 
   const handleAddItem = () => {
@@ -150,6 +157,7 @@ export default function App() {
 
   const handleCloseCreateListModal = () => {
     setNewListName(''); // Limpa o texto do input
+    setNewListDescription(''); // Limpa a descrição do input
     setCreateListModalVisible(false); // Fecha o modal
   };
 
@@ -177,7 +185,7 @@ export default function App() {
               </View>
               <View style={styles.summaryCard}>
                 <Text style={[styles.summaryValue, { color: '#2c3e50' }]}>{lists.reduce((acc, list) => acc + list.items.length, 0)}</Text>
-                <Text style={styles.summaryLabel}>Total de itens</Text>
+                <Text style={[styles.summaryLabel, { color: '#AAAAAA' }]}>Total de itens</Text>
               </View>
             </View>
             {lists.map(list => {
@@ -187,20 +195,35 @@ export default function App() {
                 <Pressable key={list.id} onPress={() => navigateToList(list.id)} style={({ pressed }) => [styles.listCard, pressed && { opacity: 0.7 }]}>
                   <View style={styles.listCardHeader}>
                     <Text style={styles.listCardTitle}>{list.title}</Text>
-                    <Pressable onPress={() => handleDeleteList(list.id)}><Trash2 size={20} color="#e74c3c" /></Pressable>
+                    <Pressable onPress={(e) => { e.stopPropagation(); handleDeleteList(list.id); }}><Trash2 size={20} color="#e74c3c" /></Pressable>
                   </View>
+                  {list.description && (
+                    <Text style={styles.listCardDescription}>{list.description}</Text>
+                  )}
                   <View style={styles.progressInfo}>
                     <Text style={styles.progressText}>{completedCount} de {list.items.length} itens</Text>
                     <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
                   </View>
-                  <View style={styles.progressBarBackground}><View style={[styles.progressBarFill, { width: `${progress}%` }]}></View></View>
+                    <View style={styles.progressBarBackground}><View style={[styles.progressBarFill, { width: `${progress}%` }]}></View>
+                  </View>
+                  <View style={styles.dateContainer}>
+                    <CalendarIcon size={14} color="#7f8c8d" />
+                    <Text style={styles.dateText}>{list.createdAt}</Text>
+                  </View>
                 </Pressable>
               );
             })}
           </>
         )}
       </ScrollView>
-      <Pressable onPress={() => setCreateListModalVisible(true)} style={({ pressed }) => [styles.fab, pressed && { backgroundColor: '#5a43a1' }]}>
+      <Pressable 
+          onPress={() => setCreateListModalVisible(true)} 
+          style={({ pressed }) => [
+            styles.fab, 
+            { bottom: insets.bottom + 24 }, 
+            pressed && { backgroundColor: '#5a43a1' }
+          ]}
+        >
         <Plus size={32} color="white" />
       </Pressable>
     </View>
@@ -231,7 +254,14 @@ export default function App() {
             </>
           )}
         </ScrollView>
-        <Pressable onPress={() => setAddItemModalVisible(true)} style={({ pressed }) => [styles.fab, pressed && { backgroundColor: '#5a43a1' }]}>
+        <Pressable 
+          onPress={() => setAddItemModalVisible(true)} 
+          style={({ pressed }) => [
+            styles.fab, 
+            { bottom: insets.bottom + 24 }, 
+            pressed && { backgroundColor: '#5a43a1' }
+          ]}
+        >
           <Plus size={32} color="white" />
         </Pressable>
       </View>
@@ -283,6 +313,17 @@ export default function App() {
             <View style={styles.modalBody}>
               <Text style={styles.formLabel}>Título</Text>
               <TextInput value={newListName} onChangeText={setNewListName} placeholder="Ex: Supermercado da semana" placeholderTextColor="#AAAAAA" style={styles.formInput} />
+              <Text style={[styles.formLabel, { marginTop: 16 }]}>Descrição (opcional)</Text>
+              <TextInput
+                value={newListDescription}
+                onChangeText={setNewListDescription}
+                placeholder="Adicione uma descrição..."
+                placeholderTextColor="#AAAAAA"
+                style={styles.formInput}
+                multiline={true} // Permite múltiplas linhas
+                numberOfLines={4} // Altura inicial do campo
+                textAlignVertical="top" // Alinha o texto no topo em Android
+              />
             </View>
             <View style={styles.modalFooter}>
               <Pressable onPress={handleCloseCreateListModal} style={[styles.button, styles.buttonSecondary]}><Text style={styles.buttonSecondaryText}>Cancelar</Text></Pressable>
@@ -307,7 +348,7 @@ export default function App() {
               </View>
               <View style={styles.modalBody}>
                 <Text style={styles.formLabel}>Nome do Item</Text>
-                <TextInput value={newItemName} onChangeText={setNewItemName} placeholder="Ex: Leite" style={styles.formInput} />
+                <TextInput value={newItemName} onChangeText={setNewItemName} placeholder="Ex: Leite" placeholderTextColor="#7f8c8d" style={styles.formInput} />
               </View>
               <View style={styles.modalFooter}>
                 <Pressable onPress={() => setAddItemModalVisible(false)} style={[styles.button, styles.buttonSecondary]}><Text style={styles.buttonSecondaryText}>Cancelar</Text></Pressable>
@@ -354,6 +395,10 @@ const styles = StyleSheet.create({
   listCard: { backgroundColor: '#fafafa', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#efefef', marginBottom: 16 },
   listCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   listCardTitle: { fontSize: 18, fontWeight: 'bold' },
+  listCardDescription: {fontSize: 14,color: '#7f8c8d',marginTop: 4,marginBottom: 12 },
+  dateContainer: {flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, alignSelf: 'flex-start', backgroundColor: '#f0f0f0', 
+    paddingVertical: 4, paddingHorizontal: 8, borderRadius: 12},
+  dateText: { fontSize: 12, color: '#2c3e50', fontWeight: '500'},
   progressInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   progressText: { fontSize: 12, color: '#7f8c8d' },
   progressPercentage: { fontSize: 12, color: '#2ecc71', fontWeight: 'bold' },
