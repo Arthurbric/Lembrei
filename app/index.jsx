@@ -148,6 +148,11 @@ export default function App() {
     setCurrentScreen('home');
   };
 
+  const handleCloseCreateListModal = () => {
+    setNewListName(''); // Limpa o texto do input
+    setCreateListModalVisible(false); // Fecha o modal
+  };
+
   // --- RENDERIZAÇÃO DOS COMPONENTES ---
 
   const renderHomeScreen = () => (
@@ -267,20 +272,20 @@ export default function App() {
         animationType="slide"
         transparent={true}
         visible={isCreateListModalVisible}
-        onRequestClose={() => setCreateListModalVisible(false)}
+        onRequestClose={handleCloseCreateListModal} 
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Criar Nova Lista</Text>
-              <Pressable onPress={() => setCreateListModalVisible(false)}><X size={24} color="#7f8c8d" /></Pressable>
+              <Pressable onPress={handleCloseCreateListModal}><X size={24} color="#7f8c8d" /></Pressable>
             </View>
             <View style={styles.modalBody}>
               <Text style={styles.formLabel}>Título</Text>
-              <TextInput value={newListName} onChangeText={setNewListName} placeholder="Ex: Supermercado da semana" style={styles.formInput} />
+              <TextInput value={newListName} onChangeText={setNewListName} placeholder="Ex: Supermercado da semana" placeholderTextColor="#AAAAAA" style={styles.formInput} />
             </View>
             <View style={styles.modalFooter}>
-              <Pressable onPress={() => setCreateListModalVisible(false)} style={[styles.button, styles.buttonSecondary]}><Text style={styles.buttonSecondaryText}>Cancelar</Text></Pressable>
+              <Pressable onPress={handleCloseCreateListModal} style={[styles.button, styles.buttonSecondary]}><Text style={styles.buttonSecondaryText}>Cancelar</Text></Pressable>
               <Pressable onPress={handleCreateList} style={styles.button}><Text style={styles.buttonText}>Criar Lista</Text></Pressable>
             </View>
           </View>
@@ -376,7 +381,7 @@ const styles = StyleSheet.create({
   modalFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, padding: 20, borderTopWidth: 1, borderTopColor: '#e0e0e0' },
   
   // Form
-  formLabel: { fontWeight: '500', marginBottom: 10, fontSize: 16 },
+  formLabel: { fontWeight: '500', marginBottom: 10, fontSize: 16, color: '#34495e'},
   formInput: { width: '100%', padding: 14, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, fontSize: 16 },
   button: { backgroundColor: '#7159c1', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },

@@ -80,3 +80,8 @@ Contributions are welcome! Please fork this repo, make changes, and submit a pul
 MIT License © 2025
 
 ---
+
+
+## Android
+
+npx expo run:android --variant release
