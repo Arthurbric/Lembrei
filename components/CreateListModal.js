@@ -18,19 +18,50 @@ export default function CreateListModal({
   const [location, setLocation] = useState('');
   const [radius, setRadius] = useState('500');
 
-  const handleConfirm = () => {
-    const newListData = {
-      title: newListName,
-      description: newListDescription,
-      notificationType,
-      date: selectedDate,
-      time: selectedTime,
-      location,
-      radius,
-    };
-    onConfirm(newListData);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  // --- Handlers ---
+  const handleDateChange = (event, date) => {
+    setShowDatePicker(false);
+    if (date) setSelectedDate(date);
   };
 
+  const handleTimeChange = (event, time) => {
+    setShowTimePicker(false);
+    if (time) {
+      const hours = String(time.getHours()).padStart(2, '0');
+      const minutes = String(time.getMinutes()).padStart(2, '0');
+      setSelectedTime(`${hours}:${minutes}`);
+    }
+  };
+
+  const handleConfirm = () => {
+    let notification = { type: 'none' };
+
+    if (notificationType === 'time' && selectedDate && selectedTime) {
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      const dateObj = new Date(selectedDate);
+      dateObj.setHours(hours || 0, minutes || 0, 0, 0);
+
+      notification = {
+        type: 'time',
+        dateISO: dateObj.toISOString(),
+      };
+    }
+
+    if (notificationType === 'location' && location.trim()) {
+      notification = {
+        type: 'location',
+        place: location,
+        radius: parseInt(radius, 10) || 500,
+      };
+    }
+
+    onConfirm(notification);
+  };
+
+  // --- Render ---
   return (
     <Modal animationType="slide" transparent visible={visible} onRequestClose={onCancel}>
       <View style={styles.modalOverlay}>
@@ -46,6 +77,7 @@ export default function CreateListModal({
               value={newListName}
               onChangeText={setNewListName}
               placeholder="Ex: Supermercado da semana"
+              placeholderTextColor="#7f8c8d"
               style={styles.input}
             />
 
@@ -54,6 +86,7 @@ export default function CreateListModal({
               value={newListDescription}
               onChangeText={setNewListDescription}
               placeholder="Adicione uma descrição..."
+              placeholderTextColor="#7f8c8d"
               style={[styles.input, { height: 80 }]}
               multiline
             />
@@ -99,18 +132,47 @@ export default function CreateListModal({
             {notificationType === 'time' && (
               <View style={{ marginTop: 16 }}>
                 <Text style={styles.label}>Data</Text>
-                <Pressable style={styles.datePicker}>
+                <Pressable
+                  style={styles.datePicker}
+                  onPress={() => setShowDatePicker(true)}
+                >
                   <Calendar size={18} color="#7159c1" />
-                  <Text>{selectedDate ? selectedDate.toLocaleDateString('pt-BR') : 'Escolher data'}</Text>
+                  <Text>
+                    {selectedDate
+                      ? selectedDate.toLocaleDateString('pt-BR')
+                      : 'Escolher data'}
+                  </Text>
                 </Pressable>
 
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={selectedDate || new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                  />
+                )}
+
                 <Text style={[styles.label, { marginTop: 8 }]}>Horário</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ex: 14:30"
-                  value={selectedTime || ''}
-                  onChangeText={setSelectedTime}
-                />
+                <Pressable
+                  style={styles.datePicker}
+                  onPress={() => setShowTimePicker(true)}
+                >
+                  <Clock size={18} color="#7159c1" />
+                  <Text>
+                    {selectedTime ? selectedTime : 'Escolher horário'}
+                  </Text>
+                </Pressable>
+
+                {showTimePicker && (
+                  <DateTimePicker
+                    value={new Date()}
+                    mode="time"
+                    is24Hour={true}
+                    display="default"
+                    onChange={handleTimeChange}
+                  />
+                )}
               </View>
             )}
 
@@ -120,6 +182,7 @@ export default function CreateListModal({
                 <TextInput
                   style={styles.input}
                   placeholder="Ex: Big Box 405 Sul, Brasília"
+                  placeholderTextColor="#7f8c8d"
                   value={location}
                   onChangeText={setLocation}
                 />
