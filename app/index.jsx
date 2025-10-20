@@ -57,16 +57,9 @@ export default function App() {
   }, [lists]);
 
   // --- FUNÇÕES DE LÓGICA ---
-  const handleCreateList = (notification) => {
-    if (!newListName.trim()) return;
-  
-    const newList = createList(newListName, newListDescription, notification);
-    console.log('Nova lista criada:', newList);
-    console.table(lists);
+  const handleCreateList = (newList) => {
+    console.log('📥 Recebendo lista pronta do modal:', newList);
     setLists((prev) => [...prev, newList]);
-  
-    setNewListName('');
-    setNewListDescription('');
     setCreateListModalVisible(false);
   };
 
@@ -330,7 +323,7 @@ export default function App() {
       <CreateListModal
         visible={isCreateListModalVisible}
         onCancel={handleCloseCreateListModal}
-        onConfirm={(notification) => handleCreateList(notification)}
+        onConfirm={handleCreateList}
         newListName={newListName}
         setNewListName={setNewListName}
         newListDescription={newListDescription}

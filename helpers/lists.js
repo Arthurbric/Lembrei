@@ -4,23 +4,27 @@
  * Normaliza o objeto de notificação.
  * Tipos:
  *  - none
- *  - time   -> { type:'time', dateISO:string }  // ex: '2025-01-30T18:30:00.000Z'
+ *  - time -> { type:'time', dateISO:string } // ex: '2025-01-30T18:30:00.000Z'
  *  - location -> { type:'location', place:string, radius:number } // radius em metros
  */
 function normalizeNotification(notification) {
   const base = { type: 'none' };
 
-  if (!notification || !notification.type) return base;
+  if (!notification || typeof notification !== 'object' || !notification.type)
+    return base;
 
   if (notification.type === 'time') {
-    // Garante string ISO válida
-    const iso = typeof notification.dateISO === 'string' ? notification.dateISO : '';
+    const iso =
+      typeof notification.dateISO === 'string' &&
+      !isNaN(Date.parse(notification.dateISO))
+        ? notification.dateISO
+        : '';
     return { type: 'time', dateISO: iso };
   }
 
   if (notification.type === 'location') {
     const place = (notification.place || '').trim();
-    const radius = Number.isFinite(notification.radius) ? Number(notification.radius) : 500; // default 500m
+    const radius = Number(notification.radius) > 0 ? Number(notification.radius) : 500;
     return { type: 'location', place, radius };
   }
 
@@ -31,11 +35,13 @@ function normalizeNotification(notification) {
  * Cria uma nova lista.
  */
 export function createList(title, description = '', notification = { type: 'none' }) {
+  const now = new Date();
   return {
     id: `list-${Date.now()}`,
     title: String(title || '').trim(),
     description: String(description || '').trim(),
-    createdAt: new Date().toLocaleDateString('pt-BR'),
+    createdAt: now.toLocaleDateString('pt-BR'),
+    createdAtISO: now.toISOString(),
     notification: normalizeNotification(notification),
     items: [],
   };
@@ -45,9 +51,12 @@ export function createList(title, description = '', notification = { type: 'none
  * Adiciona item a uma lista específica.
  */
 export function addItemToList(lists, listId, itemName) {
+  const cleanName = String(itemName || '').trim();
+  if (!cleanName) return lists; // evita adicionar item vazio
+
   const newItem = {
     id: `item-${Date.now()}`,
-    name: String(itemName || '').trim(),
+    name: cleanName,
     quantity: 1,
     completed: false,
   };

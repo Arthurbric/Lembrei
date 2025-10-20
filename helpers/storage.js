@@ -1,17 +1,19 @@
+// helpers/storage.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const STORAGE_KEY = '@GeoRemindData';
+export const STORAGE_KEY = '@LimbreiLists';
 
 /**
  * Carrega listas do AsyncStorage.
- * @returns {Promise<Array>} []
+ * @returns {Promise<Array>}
  */
 export async function loadLists() {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const data = raw ? JSON.parse(raw) : [];
+    return Array.isArray(data) ? data : [];
   } catch (err) {
-    console.error('Erro ao carregar listas:', err);
+    console.error('❌ Erro ao carregar listas:', err);
     return [];
   }
 }
@@ -22,8 +24,20 @@ export async function loadLists() {
  */
 export async function saveLists(lists) {
   try {
+    if (!Array.isArray(lists)) throw new Error('Formato inválido de listas');
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
   } catch (err) {
-    console.error('Erro ao salvar listas:', err);
+    console.error('❌ Erro ao salvar listas:', err);
+  }
+}
+
+/**
+ * Limpa todas as listas salvas.
+ */
+export async function clearLists() {
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEY);
+  } catch (err) {
+    console.error('❌ Erro ao limpar listas:', err);
   }
 }
