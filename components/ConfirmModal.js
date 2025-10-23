@@ -6,7 +6,10 @@ export default function DeleteConfirmModal({
   visible,
   onCancel,
   onConfirm,
+  theme,
 }) {
+  const t = theme || { surface: 'white', text: '#2c3e50', muted: '#7f8c8d', border: '#e0e0e0', primary: '#7159c1' };
+
   return (
     <Modal
       animationType="fade"
@@ -14,27 +17,25 @@ export default function DeleteConfirmModal({
       visible={visible}
       onRequestClose={onCancel}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+      <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+        <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Apagar Lista</Text>
+            <Text style={[styles.modalTitle, { color: t.text }]}>Apagar Lista</Text>
             <Pressable onPress={onCancel}>
-              <X size={24} color="#7f8c8d" />
+              <X size={24} color={t.muted} />
             </Pressable>
           </View>
 
           <View style={styles.modalBody}>
-            <Text style={styles.modalMessage}>
-              Tem certeza que quer apagar esta lista?
-            </Text>
+            <Text style={[styles.modalMessage, { color: t.text }]}>Tem certeza que quer apagar esta lista?</Text>
           </View>
 
-          <View style={styles.modalFooter}>
+          <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
             <Pressable
               onPress={onCancel}
-              style={[styles.button, styles.buttonSecondary]}
+              style={[styles.button, styles.buttonSecondary, { backgroundColor: t.card || '#ecf0f1' }]}
             >
-              <Text style={styles.buttonSecondaryText}>Cancelar</Text>
+              <Text style={[styles.buttonSecondaryText, { color: t.text }]}>Cancelar</Text>
             </Pressable>
             <Pressable
               onPress={onConfirm}
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 20, fontWeight: 'bold' },
   modalBody: { paddingHorizontal: 20, paddingBottom: 20 },
-  modalMessage: { fontSize: 16, color: '#2c3e50', textAlign: 'center' },
+  modalMessage: { fontSize: 16, textAlign: 'center' },
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'flex-end',

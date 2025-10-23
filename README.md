@@ -1,14 +1,14 @@
 
 ---
 
-# Limbrei 🧠✨
+# Lembrei 🧠✨
 
 *A smart reminder app designed for people with ADHD — because remembering shouldn’t be harder than the task itself.*
 
 ## Overview
 
-Limbrei is a **context-aware reminder application** that helps people with ADHD manage daily tasks.
-Unlike traditional reminder apps, Limbrei uses **location-based triggers** to deliver reminders when and where they’re most useful.
+Lembrei is a **context-aware reminder application** that helps people with ADHD manage daily tasks.
+Unlike traditional reminder apps, Lembrei uses **location-based triggers** to deliver reminders when and where they’re most useful.
 
 For example:
 
@@ -38,7 +38,7 @@ The goal is to reduce cognitive load and make life easier by reminding you at th
 
    ```bash
    git clone https://github.com/Arthurbric/Lembrei.git
-   cd limbrei
+   cd Lembrei
    ```
 2. Install dependencies:
 
@@ -55,7 +55,7 @@ The goal is to reduce cognitive load and make life easier by reminding you at th
 
 ## Usage
 
-1. Open Limbrei on your device.
+1. Open Lembrei on your device.
 2. Add a new reminder with a location (home, work, store, etc.).
 3. Get reminded automatically when you’re there.
 

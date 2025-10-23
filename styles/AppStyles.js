@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
   },
   backButton: { position: 'absolute', left: 16 },
   appHeaderTitle: { fontSize: 18, fontWeight: '500' },
@@ -53,4 +54,20 @@ export const styles = StyleSheet.create({
 
   // FAB
   fab: { position: 'absolute', bottom: 24, right: 24, width: 64, height: 64, backgroundColor: '#7159c1', borderRadius: 32, alignItems: 'center', justifyContent: 'center', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)' },
+
+  // Dark Mode
+  darkTheme: {
+    backgroundColor: '#121212',
+    color: '#ffffff',
+  },
+
+  lightTheme: {
+    backgroundColor: '#ffffff',
+    color: '#121212',
+  },
+
+  darkModeButton: {
+    position: 'absolute',
+    right: 16,
+  },
 });

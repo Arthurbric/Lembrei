@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { X } from 'lucide-react-native';
 
@@ -8,7 +8,20 @@ export default function AddItemModal({
   onConfirm,
   newItemName,
   setNewItemName,
+  isEditing = false,
+  itemToEdit = null,
+  theme,
 }) {
+  useEffect(() => {
+    if (isEditing && itemToEdit) {
+      setNewItemName(itemToEdit.name);
+    } else {
+      setNewItemName('');
+    }
+  }, [isEditing, itemToEdit, setNewItemName]);
+
+  const t = theme || { surface: 'white', text: '#2c3e50', muted: '#7f8c8d', border: '#e0e0e0', primary: '#7159c1', card: '#fafafa' };
+
   return (
     <Modal
       animationType="slide"
@@ -16,35 +29,35 @@ export default function AddItemModal({
       visible={visible}
       onRequestClose={onCancel}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+      <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
+        <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Adicionar Item</Text>
+            <Text style={[styles.modalTitle, { color: t.text }]}>{isEditing ? 'Editar Item' : 'Adicionar Item'}</Text>
             <Pressable onPress={onCancel}>
-              <X size={24} color="#7f8c8d" />
+              <X size={24} color={t.muted} />
             </Pressable>
           </View>
 
           <View style={styles.modalBody}>
-            <Text style={styles.formLabel}>Nome do Item</Text>
+            <Text style={[styles.formLabel, { color: t.text }]}>Nome do Item</Text>
             <TextInput
               value={newItemName}
               onChangeText={setNewItemName}
               placeholder="Ex: Leite"
-              placeholderTextColor="#7f8c8d"
-              style={styles.formInput}
+              placeholderTextColor={t.muted}
+              style={[styles.formInput, { backgroundColor: t.card, borderColor: t.border, color: t.text }]}
             />
           </View>
 
           <View style={styles.modalFooter}>
             <Pressable
               onPress={onCancel}
-              style={[styles.button, styles.buttonSecondary]}
+              style={[styles.button, styles.buttonSecondary, { backgroundColor: isEditing ? '#2b2b2b' : '#ecf0f1' }]}
             >
-              <Text style={styles.buttonSecondaryText}>Cancelar</Text>
+              <Text style={[styles.buttonSecondaryText, { color: t.text }]}>Cancelar</Text>
             </Pressable>
-            <Pressable onPress={onConfirm} style={styles.button}>
-              <Text style={styles.buttonText}>Adicionar</Text>
+            <Pressable onPress={onConfirm} style={[styles.button, { backgroundColor: t.primary }]}>
+              <Text style={[styles.buttonText, { color: '#fff' }]}>{isEditing ? 'Salvar' : 'Adicionar'}</Text>
             </Pressable>
           </View>
         </View>

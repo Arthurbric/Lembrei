@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert, ScrollView } from 'react-native';
 import { X, Clock, MapPin, BellOff, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
@@ -17,7 +17,9 @@ export default function CreateListModal({
   setNewListName,
   newListDescription,
   setNewListDescription,
+  theme,
 }) {
+  const t = theme || { surface: 'white', text: '#2c3e50', muted: '#7f8c8d', border: '#e0e0e0', primary: '#7159c1', card: '#fafafa' };
   const [notificationType, setNotificationType] = useState('none');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -69,8 +71,12 @@ export default function CreateListModal({
         await Notifications.requestPermissionsAsync();
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: 'Lembrete 🧠',
-            body: `Está na hora de "${newListName}"`,
+            title: `📋 Lembrete: ${newListName}`,
+            body: `Você tem itens pendentes na lista "${newListName}". Não se esqueça de verificar!`,
+            data: {
+              listName: newListName,
+              description: newListDescription,
+            },
           },
           trigger: { date: dateObj },
         });
@@ -136,166 +142,164 @@ export default function CreateListModal({
         onRequestClose={onCancel}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
             {/* --- Cabeçalho --- */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Criar Nova Lista</Text>
+              <Text style={[styles.modalTitle, { color: t.text }]}>Criar Nova Lista</Text>
               <Pressable onPress={onCancel}>
-                <X size={24} color="#7f8c8d" />
+                <X size={24} color={t.muted} />
               </Pressable>
             </View>
 
             {/* --- Corpo --- */}
             <View style={styles.modalBody}>
-              <Text style={styles.label}>Título</Text>
-              <TextInput
-                value={newListName}
-                onChangeText={setNewListName}
-                placeholder="Ex: Supermercado da semana"
-                placeholderTextColor="#7f8c8d"
-                style={styles.input}
-              />
+              <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+                <Text style={styles.label}>Título</Text>
+                <TextInput
+                  value={newListName}
+                  onChangeText={setNewListName}
+                  placeholder="Ex: Supermercado da semana"
+                  placeholderTextColor={t.muted}
+                  style={[styles.input, { backgroundColor: t.card, borderColor: t.border, color: t.text }]}
+                />
 
-              <Text style={styles.label}>Descrição (opcional)</Text>
-              <TextInput
-                value={newListDescription}
-                onChangeText={setNewListDescription}
-                placeholder="Adicione uma descrição..."
-                placeholderTextColor="#7f8c8d"
-                style={[styles.input, { height: 80 }]}
-                multiline
-              />
+                <Text style={styles.label}>Descrição (opcional)</Text>
+                <TextInput
+                  value={newListDescription}
+                  onChangeText={setNewListDescription}
+                  placeholder="Adicione uma descrição..."
+                  placeholderTextColor={t.muted}
+                  style={[styles.input, { height: 80, backgroundColor: t.card, borderColor: t.border, color: t.text }]}
+                  multiline
+                />
 
-              <Text style={[styles.label, { marginTop: 10 }]}>Notificações</Text>
+                <Text style={[styles.label, { marginTop: 10 }]}>Notificações</Text>
 
-              {/* --- Opções de notificação --- */}
-              <View style={styles.notificationOptions}>
-                <Pressable
-                  style={[styles.option, notificationType === 'none' && styles.optionSelected]}
-                  onPress={() => setNotificationType('none')}
-                >
-                  <BellOff size={20} color="#7159c1" />
-                  <View>
-                    <Text style={styles.optionTitle}>Sem notificação</Text>
-                    <Text style={styles.optionSubtitle}>Lista sem lembretes</Text>
-                  </View>
-                </Pressable>
-
-                <Pressable
-                  style={[styles.option, notificationType === 'time' && styles.optionSelected]}
-                  onPress={() => setNotificationType('time')}
-                >
-                  <Clock size={20} color="#7159c1" />
-                  <View>
-                    <Text style={styles.optionTitle}>Notificação por horário</Text>
-                    <Text style={styles.optionSubtitle}>
-                      Lembrete em data e hora específicas
-                    </Text>
-                  </View>
-                </Pressable>
-
-                <Pressable
-                  style={[styles.option, notificationType === 'location' && styles.optionSelected]}
-                  onPress={() => setNotificationType('location')}
-                >
-                  <MapPin size={20} color="#7159c1" />
-                  <View>
-                    <Text style={styles.optionTitle}>Notificação por localização</Text>
-                    <Text style={styles.optionSubtitle}>
-                      Lembrete quando próximo ao local
-                    </Text>
-                  </View>
-                </Pressable>
-              </View>
-
-              {/* --- Campos adicionais --- */}
-              {notificationType === 'time' && (
-                <View style={{ marginTop: 16 }}>
-                  <Text style={styles.label}>Data</Text>
+                {/* --- Opções de notificação --- */}
+                <View style={styles.notificationOptions}>
                   <Pressable
-                    style={styles.datePicker}
-                    onPress={() => setShowDatePicker(true)}
+                    style={[styles.option, notificationType === 'none' && styles.optionSelected, { borderColor: t.border, backgroundColor: notificationType === 'none' ? (t.card) : 'transparent' }]}
+                    onPress={() => setNotificationType('none')}
                   >
-                    <Calendar size={18} color="#7159c1" />
-                    <Text>
-                      {selectedDate
-                        ? selectedDate.toLocaleDateString('pt-BR')
-                        : 'Escolher data'}
-                    </Text>
+                    <BellOff size={20} color="#7159c1" />
+                    <View>
+                      <Text style={[styles.optionTitle, { color: t.text }]}>Sem notificação</Text>
+                      <Text style={[styles.optionSubtitle, { color: t.muted }]}>Lista sem lembretes</Text>
+                    </View>
                   </Pressable>
 
-                  {showDatePicker && (
-                    <DateTimePicker
-                      value={selectedDate || new Date()}
-                      mode="date"
-                      display="default"
-                      onChange={handleDateChange}
-                    />
-                  )}
-
-                  <Text style={[styles.label, { marginTop: 8 }]}>Horário</Text>
                   <Pressable
-                    style={styles.datePicker}
-                    onPress={() => setShowTimePicker(true)}
+                    style={[styles.option, notificationType === 'time' && styles.optionSelected, { borderColor: t.border }]}
+                    onPress={() => setNotificationType('time')}
                   >
-                    <Clock size={18} color="#7159c1" />
-                    <Text>{selectedTime ? selectedTime : 'Escolher horário'}</Text>
+                    <Clock size={20} color="#7159c1" />
+                    <View>
+                      <Text style={[styles.optionTitle, { color: t.text }]}>Notificação por horário</Text>
+                      <Text style={[styles.optionSubtitle, { color: t.muted }]}>Lembrete em data e hora específicas</Text>
+                    </View>
                   </Pressable>
 
-                  {showTimePicker && (
-                    <DateTimePicker
-                      value={new Date()}
-                      mode="time"
-                      is24Hour
-                      display="default"
-                      onChange={handleTimeChange}
-                    />
-                  )}
+                  <Pressable
+                    style={[styles.option, notificationType === 'location' && styles.optionSelected, { borderColor: t.border }]}
+                    onPress={() => setNotificationType('location')}
+                  >
+                    <MapPin size={20} color="#7159c1" />
+                    <View>
+                      <Text style={[styles.optionTitle, { color: t.text }]}>Notificação por localização</Text>
+                      <Text style={[styles.optionSubtitle, { color: t.muted }]}>Lembrete quando próximo ao local</Text>
+                    </View>
+                  </Pressable>
                 </View>
-              )}
 
-              {notificationType === 'location' && (
-                <View style={{ marginTop: 16 }}>
-                  <Text style={styles.label}>Local</Text>
+                {/* --- Campos adicionais --- */}
+                {notificationType === 'time' && (
+                  <View style={{ marginTop: 16 }}>
+                    <Text style={styles.label}>Data</Text>
+                    <Pressable
+                      style={styles.datePicker}
+                      onPress={() => setShowDatePicker(true)}
+                    >
+                      <Calendar size={18} color="#7159c1" />
+                      <Text style={{ color: t.text }}>
+                        {selectedDate
+                          ? selectedDate.toLocaleDateString('pt-BR')
+                          : 'Escolher data'}
+                      </Text>
+                    </Pressable>
 
-                  {/* Botão que abre o mapa */}
-                  <Pressable
-                    style={[
-                      styles.input,
-                      { justifyContent: 'center', alignItems: 'center' },
-                    ]}
-                    onPress={() => setIsMapVisible(true)}
-                  >
-                    <Text style={{ color: coords ? '#2c3e50' : '#7f8c8d' }}>
-                      {coords
-                        ? `📍 ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`
-                        : 'Selecionar no mapa'}
+                    {showDatePicker && (
+                      <DateTimePicker
+                        value={selectedDate || new Date()}
+                        mode="date"
+                        display="default"
+                        onChange={handleDateChange}
+                      />
+                    )}
+
+                    <Text style={[styles.label, { marginTop: 8 }]}>Horário</Text>
+                    <Pressable
+                      style={styles.datePicker}
+                      onPress={() => setShowTimePicker(true)}
+                    >
+                      <Clock size={18} color="#7159c1" />
+                      <Text style={{ color: t.text }}>{selectedTime ? selectedTime : 'Escolher horário'}</Text>
+                    </Pressable>
+
+                    {showTimePicker && (
+                      <DateTimePicker
+                        value={new Date()}
+                        mode="time"
+                        is24Hour
+                        display="default"
+                        onChange={handleTimeChange}
+                      />
+                    )}
+                  </View>
+                )}
+
+                {notificationType === 'location' && (
+                  <View style={{ marginTop: 16 }}>
+                    <Text style={styles.label}>Local</Text>
+
+                    {/* Botão que abre o mapa */}
+                    <Pressable
+                      style={[
+                        styles.input,
+                        { justifyContent: 'center', alignItems: 'center' },
+                      ]}
+                      onPress={() => setIsMapVisible(true)}
+                    >
+                      <Text style={{ color: coords ? '#2c3e50' : '#7f8c8d' }}>
+                        {coords
+                          ? `📍 ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`
+                          : 'Selecionar no mapa'}
+                      </Text>
+                    </Pressable>
+
+                    <Text style={[styles.label, { marginTop: 8 }]}>
+                      Distância para notificação (m)
                     </Text>
-                  </Pressable>
-
-                  <Text style={[styles.label, { marginTop: 8 }]}>
-                    Distância para notificação (m)
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    value={radius}
-                    onChangeText={setRadius}
-                    keyboardType="numeric"
-                  />
-                </View>
-              )}
+                    <TextInput
+                      style={[styles.input, { backgroundColor: t.card, borderColor: t.border, color: t.text }]}
+                      value={radius}
+                      onChangeText={setRadius}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                )}
+              </ScrollView>
             </View>
 
             {/* --- Rodapé --- */}
             <View style={styles.modalFooter}>
               <Pressable
                 onPress={onCancel}
-                style={[styles.button, styles.cancel]}
+                style={[styles.button, styles.cancel, { backgroundColor: t.card }]}
               >
-                <Text style={styles.cancelText}>Cancelar</Text>
+                <Text style={[styles.cancelText, { color: t.text }]}>Cancelar</Text>
               </Pressable>
-              <Pressable onPress={handleConfirm} style={styles.button}>
-                <Text style={styles.buttonText}>Criar Lista</Text>
+              <Pressable onPress={handleConfirm} style={[styles.button, { backgroundColor: t.primary }]}>
+                <Text style={[styles.buttonText, { color: '#fff' }]}>Criar Lista</Text>
               </Pressable>
             </View>
           </View>
@@ -310,6 +314,7 @@ export default function CreateListModal({
           setCoords(selected);
           setIsMapVisible(false);
         }}
+        theme={theme}
       />
     </>
   );
@@ -318,10 +323,10 @@ export default function CreateListModal({
 // --- Styles ---
 const styles = StyleSheet.create({
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' },
-  modalContent: { width: '90%', backgroundColor: 'white', borderRadius: 20, overflow: 'hidden' },
+  modalContent: { width: '90%', backgroundColor: 'white', borderRadius: 20, overflow: 'hidden', maxHeight: '80%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
   modalTitle: { fontSize: 20, fontWeight: 'bold' },
-  modalBody: { paddingHorizontal: 20, paddingBottom: 20 },
+  modalBody: { paddingHorizontal: 20, paddingBottom: 20, maxHeight: '65%' },
   label: { fontWeight: '600', marginBottom: 8, color: '#2c3e50' },
   input: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 10, fontSize: 16 },
   option: {

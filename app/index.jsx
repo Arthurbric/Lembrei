@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
   Pressable,
   ScrollView,
+  Appearance,
+  Platform,
+  Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { List, Plus, ArrowLeft, Trash2, Check, Calendar as CalendarIcon,
-         BellOff, Clock, MapPin, } from 'lucide-react-native';
-
+         BellOff, Clock, MapPin, Edit3, Sun, Moon } from 'lucide-react-native';
 
 import { styles } from '../styles/AppStyles';
 import DeleteConfirmModal from '../components/ConfirmModal';
@@ -38,11 +42,17 @@ export default function App() {
   const [isCreateListModalVisible, setCreateListModalVisible] = useState(false);
   const [isAddItemModalVisible, setAddItemModalVisible] = useState(false);
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isEditItemModalVisible, setEditItemModalVisible] = useState(false);
+  const [isEditListModalVisible, setEditListModalVisible] = useState(false);
 
   // Form states
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   const [newItemName, setNewItemName] = useState('');
+  const [itemToEdit, setItemToEdit] = useState(null);
+  const [listToEdit, setListToEdit] = useState(null);
+  const [editedListName, setEditedListName] = useState('');
+  const [editedListDescription, setEditedListDescription] = useState('');
 
   // Aux
   const [listToDelete, setListToDelete] = useState(null);
@@ -55,6 +65,61 @@ export default function App() {
   useEffect(() => {
     saveLists(lists);
   }, [lists]);
+
+  // tema: persistência e respeito ao sistema
+  const THEME_KEY = '@LimbreiThemePref'; // 'auto' | 'light' | 'dark'
+  const [systemScheme, setSystemScheme] = useState(Appearance.getColorScheme());
+
+  const [themePref, setThemePref] = useState('auto');
+  // derived
+  const isDarkMode = themePref === 'auto' ? systemScheme === 'dark' : themePref === 'dark';
+
+  // não usamos LayoutAnimation para evitar flick; usamos Animated para transições de cor
+  useEffect(() => {
+    // placeholder para possíveis necessidades futuras
+  }, []);
+
+  // carrega preferência salva
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem(THEME_KEY);
+        if (saved) {
+          setThemePref(saved);
+        }
+      } catch (e) {
+        /* silent */
+      }
+    })();
+  }, []);
+
+  // observa mudanças do esquema do sistema quando em 'auto' (atualiza apenas o estado do sistema)
+  useEffect(() => {
+    const sub = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemScheme(colorScheme);
+    });
+    return () => sub.remove();
+  }, []);
+
+  const changeThemePref = async (mode) => {
+    try {
+      await AsyncStorage.setItem(THEME_KEY, mode);
+      setThemePref(mode);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Não usamos LayoutAnimation para layout, apenas Animated para cores
+
+  const toggleDarkMode = () => {
+    const next = (themePref === 'dark') ? 'light' : 'dark';
+    changeThemePref(next);
+  };
+
+  const setAutoMode = () => {
+    changeThemePref('auto');
+  };
 
   // --- FUNÇÕES DE LÓGICA ---
   const handleCreateList = (newList) => {
@@ -90,6 +155,52 @@ export default function App() {
     setLists((prev) => removeItemHelper(prev, currentListId, itemId));
   };
 
+  const handleEditItem = (item) => {
+    setItemToEdit(item);
+    setEditItemModalVisible(true);
+  };
+
+  const handleSaveItem = () => {
+    if (!itemToEdit || !newItemName.trim() || !currentListId) return;
+    setLists((prev) =>
+      prev.map((list) =>
+        list.id === currentListId
+          ? {
+              ...list,
+              items: list.items.map((it) =>
+                it.id === itemToEdit.id ? { ...it, name: newItemName } : it
+              ),
+            }
+          : list
+      )
+    );
+    setEditItemModalVisible(false);
+    setItemToEdit(null);
+    setNewItemName('');
+  };
+
+  const handleEditList = (list) => {
+    setListToEdit(list);
+    setEditedListName(list.title);
+    setEditedListDescription(list.description);
+    setEditListModalVisible(true);
+  };
+
+  const handleSaveList = () => {
+    if (!listToEdit || !editedListName.trim()) return;
+    setLists((prev) =>
+      prev.map((list) =>
+        list.id === listToEdit.id
+          ? { ...list, title: editedListName, description: editedListDescription }
+          : list
+      )
+    );
+    setEditListModalVisible(false);
+    setListToEdit(null);
+    setEditedListName('');
+    setEditedListDescription('');
+  };
+
   const navigateToList = (listId) => {
     setCurrentListId(listId);
     setCurrentScreen('list');
@@ -117,11 +228,64 @@ export default function App() {
         return { icon: BellOff, label: 'Sem notificação' };
     }
   };
-  
+
+  // Tema dinâmico usado pela UI (target colors)
+  const targetTheme = isDarkMode
+    ? {
+        background: '#0b0b0c',
+        surface: '#121212',
+        card: '#1b1b1b',
+        text: '#ffffff',
+        muted: '#9aa0a6',
+        border: '#2b2b2b',
+        primary: '#9b7cff',
+        fabBg: '#7159c1',
+      }
+    : {
+        background: '#f5f5f5',
+        surface: '#ffffff',
+        card: '#fafafa',
+        text: '#2c3e50',
+        muted: '#7f8c8d',
+        border: '#e0e0e0',
+        primary: '#7159c1',
+        fabBg: '#7159c1',
+      };
+
+  // Tema aplicado (usado por componentes não-animados). Atualiza apenas após a animação terminar para evitar 'flick'.
+  const [appliedTheme, setAppliedTheme] = useState(targetTheme);
+
+  // --- Animated theme transition ---
+  const themeAnim = useRef(new Animated.Value(isDarkMode ? 1 : 0)).current;
+
+  useEffect(() => {
+    // anima até o valor desejado; apenas quando terminar atualiza o tema aplicado
+    Animated.timing(themeAnim, {
+      toValue: isDarkMode ? 1 : 0,
+      duration: 320,
+      useNativeDriver: false,
+    }).start(() => {
+      // Atualiza tema estático após animação para evitar mudança instantânea
+      setAppliedTheme(targetTheme);
+    });
+  }, [isDarkMode]);
+
+  const bgColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#f5f5f5', '#0b0b0c'] });
+  const surfaceColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#ffffff', '#121212'] });
+  const cardColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#fafafa', '#1b1b1b'] });
+  const textColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#2c3e50', '#ffffff'] });
+  const mutedColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#7f8c8d', '#9aa0a6'] });
+  const borderColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#e0e0e0', '#2b2b2b'] });
+  const primaryColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#7159c1', '#9b7cff'] });
+  const fabColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#7159c1', '#7159c1'] });
+
+  const AnimatedSafeArea = Animated.createAnimatedComponent(SafeAreaView);
+  const AnimatedView = Animated.createAnimatedComponent(View);
+  const AnimatedText = Animated.createAnimatedComponent(Text);
 
   // --- RENDERIZAÇÃO DOS COMPONENTES ---
   const renderHomeScreen = () => (
-    <View style={styles.screenContainer}>
+    <View style={[styles.screenContainer, { backgroundColor: appliedTheme.background }]}> 
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 160 }]}
         showsVerticalScrollIndicator
@@ -131,25 +295,23 @@ export default function App() {
             <View style={styles.emptyStateIconContainer}>
               <List size={40} color="white" />
             </View>
-            <Text style={styles.emptyStateTitle}>Bem-vindo ao GeoRemind!</Text>
-            <Text style={styles.emptyStateSubtitle}>
+            <Text style={[styles.emptyStateTitle, { color: appliedTheme.text }]}>Bem-vindo ao GeoRemind!</Text>
+            <Text style={[styles.emptyStateSubtitle, { color: appliedTheme.muted }]}>
               Crie sua primeira lista clicando no botão '+' abaixo.
             </Text>
           </View>
         ) : (
           <>
             <View style={styles.summaryGrid}>
-              <View style={[styles.summaryCard, styles.summaryCardPrimary]}>
-                <Text style={styles.summaryValue}>{lists.length}</Text>
-                <Text style={styles.summaryLabel}>Listas criadas</Text>
+              <View style={[styles.summaryCard, styles.summaryCardPrimary, { backgroundColor: appliedTheme.primary, borderColor: appliedTheme.primary }] }>
+                <Text style={[styles.summaryValue, { color: '#fff' }]}>{lists.length}</Text>
+                <Text style={[styles.summaryLabel, { color: '#fff' }]}>Listas criadas</Text>
               </View>
-              <View style={styles.summaryCard}>
-                <Text style={[styles.summaryValue, { color: '#2c3e50' }]}>
+              <View style={[styles.summaryCard, { backgroundColor: appliedTheme.surface, borderColor: appliedTheme.border }] }>
+                <Text style={[styles.summaryValue, { color: appliedTheme.text }]}>
                   {lists.reduce((acc, list) => acc + list.items.length, 0)}
                 </Text>
-                <Text style={[styles.summaryLabel, { color: '#AAAAAA' }]}>
-                  Total de itens
-                </Text>
+                <Text style={[styles.summaryLabel, { color: appliedTheme.muted }]}>Total de itens</Text>
               </View>
             </View>
 
@@ -164,22 +326,36 @@ export default function App() {
                 <Pressable
                   key={list.id}
                   onPress={() => navigateToList(list.id)}
-                  style={({ pressed }) => [styles.listCard, pressed && { opacity: 0.7 }]}
+                  style={({ pressed }) => [
+                    styles.listCard,
+                    { backgroundColor: appliedTheme.card, borderColor: appliedTheme.border },
+                    pressed && { opacity: 0.7 },
+                  ]}
                 >
                   <View style={styles.listCardHeader}>
-                    <Text style={styles.listCardTitle}>{list.title}</Text>
-                    <Pressable
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        handleDeleteList(list.id);
-                      }}
-                    >
-                      <Trash2 size={20} color="#e74c3c" />
-                    </Pressable>
+                    <Text style={[styles.listCardTitle, { color: appliedTheme.text }]}>{list.title}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Pressable
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleEditList(list);
+                        }}
+                      >
+                        <Edit3 size={20} color="#3498db" style={{ marginRight: 8 }} />
+                      </Pressable>
+                      <Pressable
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleDeleteList(list.id);
+                        }}
+                      >
+                        <Trash2 size={20} color="#e74c3c" />
+                      </Pressable>
+                    </View>
                   </View>
 
                   {list.description ? (
-                    <Text style={styles.listCardDescription}>{list.description}</Text>
+                    <Text style={[styles.listCardDescription, { color: appliedTheme.muted }]}>{list.description}</Text>
                   ) : null}
 
                   {(() => {
@@ -188,11 +364,11 @@ export default function App() {
                       <View
                         style={[
                           styles.dateContainer,
-                          { backgroundColor: '#f5f3ff', marginTop: 4, alignSelf: 'flex-start' }
+                          { backgroundColor: isDarkMode ? '#151521' : '#f5f3ff', marginTop: 4, alignSelf: 'flex-start', borderColor: appliedTheme.border }
                         ]}
                       >
                         <Icon size={14} color="#7159c1" />
-                        <Text style={[styles.dateText, { color: '#4c3ebf', fontWeight: '600' }]}>
+                        <Text style={[styles.dateText, { color: appliedTheme.primary, fontWeight: '600' }]}>
                           {label}
                         </Text>
                       </View>
@@ -200,19 +376,19 @@ export default function App() {
                   })()}
 
                   <View style={styles.progressInfo}>
-                    <Text style={styles.progressText}>
+                    <Text style={[styles.progressText, { color: appliedTheme.muted }]}>
                       {completedCount} de {list.items.length} itens
                     </Text>
-                    <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
+                    <Text style={[styles.progressPercentage, { color: appliedTheme.primary }]}>{Math.round(progress)}%</Text>
                   </View>
 
                   <View style={styles.progressBarBackground}>
-                    <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+                    <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: appliedTheme.primary }]} />
                   </View>
 
                   <View style={styles.dateContainer}>
                     <CalendarIcon size={14} color="#7f8c8d" />
-                    <Text style={styles.dateText}>{list.createdAt}</Text>
+                    <Text style={[styles.dateText, { color: appliedTheme.muted }]}>{list.createdAt}</Text>
                   </View>
                 </Pressable>
               );
@@ -225,7 +401,7 @@ export default function App() {
         onPress={() => setCreateListModalVisible(true)}
         style={({ pressed }) => [
           styles.fab,
-          { bottom: insets.bottom + 24 },
+          { bottom: insets.bottom + 24, backgroundColor: appliedTheme.fabBg },
           pressed && { backgroundColor: '#5a43a1' },
         ]}
       >
@@ -242,25 +418,27 @@ export default function App() {
     const pendingItems = list.items.filter((i) => !i.completed);
 
     return (
-      <View style={styles.screenContainer}>
+      <View style={[styles.screenContainer, { backgroundColor: appliedTheme.background }]}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {list.items.length === 0 ? (
             <View style={styles.emptyStateContainer}>
-              <View style={styles.emptyListIconContainer}>
-                <Plus size={28} color="#7f8c8d" />
-              </View>
-              <Text style={styles.emptyStateTitle}>Lista Vazia</Text>
-              <Text style={styles.emptyStateSubtitle}>Adicione itens para começar</Text>
+              <Pressable onPress={() => { setNewItemName(''); setAddItemModalVisible(true); }} style={{ alignItems: 'center' }}>
+                <View style={styles.emptyListIconContainer}>
+                  <Plus size={28} color="#7f8c8d" />
+                </View>
+              </Pressable>
+              <Text style={[styles.emptyStateTitle, { color: appliedTheme.text }]}>Lista Vazia</Text>
+              <Text style={[styles.emptyStateSubtitle, { color: appliedTheme.muted }]}>Adicione itens para começar</Text>
             </View>
           ) : (
             <>
               {pendingItems.length > 0 && (
-                <Text style={styles.itemListHeader}>Pendentes ({pendingItems.length})</Text>
+                <Text style={[styles.itemListHeader, { color: appliedTheme.text }]}>Pendentes ({pendingItems.length})</Text>
               )}
               {pendingItems.map((item) => renderItem(item))}
 
               {completedItems.length > 0 && (
-                <Text style={styles.itemListHeader}>Concluídos ({completedItems.length})</Text>
+                <Text style={[styles.itemListHeader, { color: appliedTheme.text }]}>Concluídos ({completedItems.length})</Text>
               )}
               {completedItems.map((item) => renderItem(item))}
             </>
@@ -271,7 +449,7 @@ export default function App() {
           onPress={() => setAddItemModalVisible(true)}
           style={({ pressed }) => [
             styles.fab,
-            { bottom: insets.bottom + 24 },
+            { bottom: insets.bottom + 24, backgroundColor: appliedTheme.fabBg },
             pressed && { backgroundColor: '#5a43a1' },
           ]}
         >
@@ -285,16 +463,20 @@ export default function App() {
     <View key={item.id} style={styles.itemCard}>
       <Pressable
         onPress={() => handleToggleItem(item.id)}
-        style={[styles.checkbox, item.completed && styles.checkboxCompleted]}
+        style={[styles.checkbox, item.completed && styles.checkboxCompleted, { borderColor: appliedTheme.border }]}
       >
         {item.completed && <Check size={16} color="white" />}
       </Pressable>
 
       <View style={styles.itemContent}>
-        <Text style={[styles.itemTitle, item.completed && styles.itemTitleCompleted]}>
+        <Text style={[styles.itemTitle, item.completed && styles.itemTitleCompleted, { color: item.completed ? appliedTheme.muted : appliedTheme.text }]}>
           {item.name}
         </Text>
       </View>
+
+      <Pressable onPress={() => handleEditItem(item)}>
+        <Edit3 size={20} color="#3498db" style={{ marginRight: 8 }} />
+      </Pressable>
 
       <Pressable onPress={() => handleDeleteItem(item.id)}>
         <Trash2 size={20} color="#e74c3c" />
@@ -305,17 +487,26 @@ export default function App() {
   const currentList = lists.find((l) => l.id === currentListId);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.appHeader}>
+    <AnimatedSafeArea style={[styles.container, { backgroundColor: bgColor }]} edges={['top', 'left', 'right']}>
+      <StatusBar style={isDarkMode ? 'light' : 'dark'} />
+      <AnimatedView style={[styles.appHeader, { backgroundColor: surfaceColor }]}>
         {currentScreen === 'list' && (
           <Pressable onPress={navigateToHome} style={styles.backButton}>
-            <ArrowLeft size={24} color="#2c3e50" />
+            <ArrowLeft size={24} color={isDarkMode ? '#fff' : '#2c3e50'} />
           </Pressable>
         )}
-        <Text style={styles.appHeaderTitle}>
+        <AnimatedText style={[styles.appHeaderTitle, { color: textColor }]}> 
           {currentScreen === 'home' ? 'Minhas Listas' : currentList?.title}
-        </Text>
-      </View>
+        </AnimatedText>
+        <Pressable
+          onPress={toggleDarkMode}
+          onLongPress={setAutoMode}
+          style={[styles.darkModeButton, { padding: 8, borderRadius: 8 }]}
+          accessibilityLabel="Alternar tema (segure para automático)"
+        >
+          {isDarkMode ? <Sun size={20} color={isDarkMode ? '#fff' : '#2c3e50'} /> : <Moon size={20} color={isDarkMode ? '#fff' : '#2c3e50'} />}
+        </Pressable>
+      </AnimatedView>
 
       {currentScreen === 'home' ? renderHomeScreen() : renderListScreen()}
 
@@ -328,8 +519,8 @@ export default function App() {
         setNewListName={setNewListName}
         newListDescription={newListDescription}
         setNewListDescription={setNewListDescription}
+        theme={appliedTheme}
       />
-
 
       {/* MODAL: Adicionar Item */}
       <AddItemModal
@@ -338,6 +529,40 @@ export default function App() {
         onConfirm={handleAddItem}
         newItemName={newItemName}
         setNewItemName={setNewItemName}
+        theme={appliedTheme}
+      />
+
+      {/* MODAL: Editar Item */}
+      <AddItemModal
+        visible={isEditItemModalVisible}
+        onCancel={() => {
+          setEditItemModalVisible(false);
+          setItemToEdit(null);
+          setNewItemName('');
+        }}
+        onConfirm={handleSaveItem}
+        newItemName={newItemName}
+        setNewItemName={setNewItemName}
+        isEditing={true}
+        itemToEdit={itemToEdit}
+        theme={appliedTheme}
+      />
+
+      {/* MODAL: Editar Lista */}
+      <CreateListModal
+        visible={isEditListModalVisible}
+        onCancel={() => {
+          setEditListModalVisible(false);
+          setListToEdit(null);
+          setEditedListName('');
+          setEditedListDescription('');
+        }}
+        onConfirm={handleSaveList}
+        newListName={editedListName}
+        setNewListName={setEditedListName}
+        newListDescription={editedListDescription}
+        setNewListDescription={setEditedListDescription}
+        theme={appliedTheme}
       />
 
       {/* MODAL: Confirmar Exclusão */}
@@ -345,7 +570,8 @@ export default function App() {
         visible={isDeleteModalVisible}
         onCancel={() => setDeleteModalVisible(false)}
         onConfirm={confirmDeleteList}
+        theme={appliedTheme}
       />
-    </SafeAreaView>
+    </AnimatedSafeArea>
   );
 }
