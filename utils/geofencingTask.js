@@ -12,8 +12,8 @@ TaskManager.defineTask(GEOFENCE_TASK, async ({ data: { eventType, region }, erro
   if (eventType === TaskManager.LocationGeofencingEventType.Enter) {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Lembrete de Localização 🧠',
-        body: `Você chegou perto de ${region.identifier}`,
+        title: `Lembrete: ${region.identifier}`,
+        body: `Você chegou perto do local associado à lista "${region.identifier}". Verifique seus itens.`,
       },
       trigger: null,
     });

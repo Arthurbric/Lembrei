@@ -99,8 +99,11 @@ export default function CreateListModal({
 
         await Notifications.requestPermissionsAsync();
 
+        // usamos o nome da lista como identifier para que a notificação mostre o título da lista
+        const geofenceIdentifier = `${newListName}`;
+
         await startGeofence({
-          identifier: location,
+          identifier: geofenceIdentifier,
           latitude: coords?.latitude,
           longitude: coords?.longitude,
           radius: notification.radius,

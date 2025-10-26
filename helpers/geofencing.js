@@ -47,8 +47,8 @@ export async function startGeofence({ identifier, latitude, longitude, radius = 
     console.log(`✅ Geofencing iniciado para "${identifier}" em (${latitude}, ${longitude})`);
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Lembrete ativado 📍',
-        body: `O lembrete de localização "${identifier}" foi ativado com sucesso.`,
+        title: `Lembrete ativado: ${identifier}`,
+        body: `O lembrete da lista "${identifier}" foi ativado para essa localização.`,
       },
       trigger: null,
     });

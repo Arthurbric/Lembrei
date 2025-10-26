@@ -7,7 +7,6 @@ import {
   ScrollView,
   Appearance,
   Platform,
-  Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
@@ -255,33 +254,10 @@ export default function App() {
   // Tema aplicado (usado por componentes não-animados). Atualiza apenas após a animação terminar para evitar 'flick'.
   const [appliedTheme, setAppliedTheme] = useState(targetTheme);
 
-  // --- Animated theme transition ---
-  const themeAnim = useRef(new Animated.Value(isDarkMode ? 1 : 0)).current;
-
+  // Aplicamos o tema imediatamente (sem animação) para evitar flick
   useEffect(() => {
-    // anima até o valor desejado; apenas quando terminar atualiza o tema aplicado
-    Animated.timing(themeAnim, {
-      toValue: isDarkMode ? 1 : 0,
-      duration: 320,
-      useNativeDriver: false,
-    }).start(() => {
-      // Atualiza tema estático após animação para evitar mudança instantânea
-      setAppliedTheme(targetTheme);
-    });
+    setAppliedTheme(targetTheme);
   }, [isDarkMode]);
-
-  const bgColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#f5f5f5', '#0b0b0c'] });
-  const surfaceColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#ffffff', '#121212'] });
-  const cardColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#fafafa', '#1b1b1b'] });
-  const textColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#2c3e50', '#ffffff'] });
-  const mutedColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#7f8c8d', '#9aa0a6'] });
-  const borderColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#e0e0e0', '#2b2b2b'] });
-  const primaryColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#7159c1', '#9b7cff'] });
-  const fabColor = themeAnim.interpolate({ inputRange: [0, 1], outputRange: ['#7159c1', '#7159c1'] });
-
-  const AnimatedSafeArea = Animated.createAnimatedComponent(SafeAreaView);
-  const AnimatedView = Animated.createAnimatedComponent(View);
-  const AnimatedText = Animated.createAnimatedComponent(Text);
 
   // --- RENDERIZAÇÃO DOS COMPONENTES ---
   const renderHomeScreen = () => (
@@ -460,7 +436,7 @@ export default function App() {
   };
 
   const renderItem = (item) => (
-    <View key={item.id} style={styles.itemCard}>
+    <View key={item.id} style={[styles.itemCard, { backgroundColor: appliedTheme.card, borderColor: appliedTheme.border }]}>
       <Pressable
         onPress={() => handleToggleItem(item.id)}
         style={[styles.checkbox, item.completed && styles.checkboxCompleted, { borderColor: appliedTheme.border }]}
@@ -487,17 +463,17 @@ export default function App() {
   const currentList = lists.find((l) => l.id === currentListId);
 
   return (
-    <AnimatedSafeArea style={[styles.container, { backgroundColor: bgColor }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: appliedTheme.background }]} edges={['top', 'left', 'right']}>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
-      <AnimatedView style={[styles.appHeader, { backgroundColor: surfaceColor }]}>
+      <View style={[styles.appHeader, { backgroundColor: appliedTheme.surface }]}> 
         {currentScreen === 'list' && (
           <Pressable onPress={navigateToHome} style={styles.backButton}>
             <ArrowLeft size={24} color={isDarkMode ? '#fff' : '#2c3e50'} />
           </Pressable>
         )}
-        <AnimatedText style={[styles.appHeaderTitle, { color: textColor }]}> 
+        <Text style={[styles.appHeaderTitle, { color: appliedTheme.text }]}> 
           {currentScreen === 'home' ? 'Minhas Listas' : currentList?.title}
-        </AnimatedText>
+        </Text>
         <Pressable
           onPress={toggleDarkMode}
           onLongPress={setAutoMode}
@@ -506,7 +482,7 @@ export default function App() {
         >
           {isDarkMode ? <Sun size={20} color={isDarkMode ? '#fff' : '#2c3e50'} /> : <Moon size={20} color={isDarkMode ? '#fff' : '#2c3e50'} />}
         </Pressable>
-      </AnimatedView>
+      </View>
 
       {currentScreen === 'home' ? renderHomeScreen() : renderListScreen()}
 
@@ -572,6 +548,6 @@ export default function App() {
         onConfirm={confirmDeleteList}
         theme={appliedTheme}
       />
-    </AnimatedSafeArea>
+    </SafeAreaView>
   );
 }
