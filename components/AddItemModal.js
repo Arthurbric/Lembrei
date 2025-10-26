@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable, View, Text, TextInput, StyleSheet } from 'react-native';
 import { X } from 'lucide-react-native';
 
 export default function AddItemModal({
@@ -29,8 +29,8 @@ export default function AddItemModal({
       visible={visible}
       onRequestClose={onCancel}
     >
-      <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
-        <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+      <Pressable style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]} onPress={onCancel}>
+        <Pressable onPress={() => {}} style={[styles.modalContent, { backgroundColor: t.surface }]}> 
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: t.text }]}>{isEditing ? 'Editar Item' : 'Adicionar Item'}</Text>
             <Pressable onPress={onCancel}>
@@ -52,16 +52,20 @@ export default function AddItemModal({
           <View style={styles.modalFooter}>
             <Pressable
               onPress={onCancel}
-              style={[styles.button, styles.buttonSecondary, { backgroundColor: isEditing ? '#2b2b2b' : '#ecf0f1' }]}
+              style={[
+                styles.button,
+                styles.buttonSecondary,
+                { backgroundColor: t.card, borderWidth: 1, borderColor: t.border },
+              ]}
             >
               <Text style={[styles.buttonSecondaryText, { color: t.text }]}>Cancelar</Text>
             </Pressable>
-            <Pressable onPress={onConfirm} style={[styles.button, { backgroundColor: t.primary }]}>
+            <Pressable onPress={onConfirm} style={[styles.button, { backgroundColor: t.primary }]}> 
               <Text style={[styles.buttonText, { color: '#fff' }]}>{isEditing ? 'Salvar' : 'Adicionar'}</Text>
             </Pressable>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

@@ -32,17 +32,27 @@ export async function startGeofence({ identifier, latitude, longitude, radius = 
       console.log('🧭 Registrando tarefa de geofencing...');
     }
 
-    // 3️⃣ Cria o geofence
-    await Location.startGeofencingAsync(GEOFENCE_TASK, [
+    // 3️⃣ Cria o geofence (com serviço em foreground para Android)
+    await Location.startGeofencingAsync(
+      GEOFENCE_TASK,
+      [
+        {
+          identifier,
+          latitude,
+          longitude,
+          radius,
+          notifyOnEnter: true,
+          notifyOnExit: false,
+        },
+      ],
       {
-        identifier,
-        latitude,
-        longitude,
-        radius,
-        notifyOnEnter: true,
-        notifyOnExit: false,
-      },
-    ]);
+        foregroundService: {
+          notificationTitle: 'Lembrei — Geofencing ativo',
+          notificationBody: `Monitorando a área da lista "${identifier}"`,
+          notificationColor: '#2196F3',
+        },
+      }
+    );
 
     console.log(`✅ Geofencing iniciado para "${identifier}" em (${latitude}, ${longitude})`);
     await Notifications.scheduleNotificationAsync({

@@ -11,7 +11,7 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 
-export default function MapPickerModal({ visible, onCancel, onConfirm }) {
+export default function MapPickerModal({ visible, onCancel, onConfirm, theme }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [mapError, setMapError] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -189,26 +189,27 @@ export default function MapPickerModal({ visible, onCancel, onConfirm }) {
       );
     }
   };
+  const t = theme || { surface: '#fff', text: '#2c3e50', muted: '#7f8c8d', border: '#e0e0e0', primary: '#7159c1', card: '#fff' };
 
   return (
-    <Modal animationType="slide" transparent visible={visible}>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Selecione o local do lembrete</Text>
+    <Modal animationType="slide" transparent visible={visible} onRequestClose={onCancel}>
+      <Pressable style={styles.overlay} onPress={onCancel}>
+        <Pressable onPress={() => {}} style={[styles.container, { backgroundColor: t.surface }]}> 
+          <Text style={[styles.title, { color: t.text }]}>Selecione o local do lembrete</Text>
 
           {/* Botões auxiliares acima do mapa */}
           <View style={styles.topActions}>
-            <Pressable onPress={useMyLocation} style={[styles.smallButton, { backgroundColor: '#fff' }]}>
-              <Text style={{ color: '#2c3e50' }}>📍 Usar minha localização</Text>
+            <Pressable onPress={useMyLocation} style={[styles.smallButton, { backgroundColor: t.card, borderColor: t.border }]}> 
+              <Text style={{ color: t.text }}>📍 Usar minha localização</Text>
             </Pressable>
 
             <Pressable
               onPress={() => {
                 setSelectedLocation(null);
               }}
-              style={[styles.smallButton, { backgroundColor: '#fff' }]}
+              style={[styles.smallButton, { backgroundColor: t.card, borderColor: t.border }]}
             >
-              <Text style={{ color: '#2c3e50' }}>Limpar seleção</Text>
+              <Text style={{ color: t.text }}>Limpar seleção</Text>
             </Pressable>
           </View>
 
@@ -217,24 +218,24 @@ export default function MapPickerModal({ visible, onCancel, onConfirm }) {
 
           {/* Ações finais */}
           <View style={styles.actions}>
-            <Pressable onPress={onCancel} style={[styles.button, styles.cancel]}>
-              <Text style={styles.cancelText}>Cancelar</Text>
+            <Pressable onPress={onCancel} style={[styles.button, styles.cancel, { backgroundColor: t.card, borderColor: t.border, borderWidth: 1 }]}> 
+              <Text style={[styles.cancelText, { color: t.text }]}>Cancelar</Text>
             </Pressable>
             <Pressable
               onPress={() => selectedLocation && onConfirm(selectedLocation)}
               style={[
                 styles.button,
                 {
-                  backgroundColor: selectedLocation ? '#7159c1' : '#ccc',
+                  backgroundColor: selectedLocation ? t.primary : '#ccc',
                 },
               ]}
               disabled={!selectedLocation}
             >
-              <Text style={styles.confirmText}>Confirmar</Text>
+              <Text style={[styles.confirmText, { color: selectedLocation ? '#fff' : '#333' }]}>Confirmar</Text>
             </Pressable>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

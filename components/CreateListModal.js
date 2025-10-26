@@ -144,8 +144,8 @@ export default function CreateListModal({
         visible={visible}
         onRequestClose={onCancel}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+        <Pressable style={styles.modalOverlay} onPress={onCancel}>
+          <Pressable onPress={() => {}} style={[styles.modalContent, { backgroundColor: t.surface }]}>
             {/* --- Cabeçalho --- */}
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: t.text }]}>Criar Nova Lista</Text>
@@ -157,7 +157,7 @@ export default function CreateListModal({
             {/* --- Corpo --- */}
             <View style={styles.modalBody}>
               <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-                <Text style={styles.label}>Título</Text>
+                <Text style={[styles.label, { color: t.text, marginBottom: 12 }]}>Título</Text>
                 <TextInput
                   value={newListName}
                   onChangeText={setNewListName}
@@ -166,7 +166,7 @@ export default function CreateListModal({
                   style={[styles.input, { backgroundColor: t.card, borderColor: t.border, color: t.text }]}
                 />
 
-                <Text style={styles.label}>Descrição (opcional)</Text>
+                <Text style={[styles.label, { color: t.text, marginBottom: 12 }]}>Descrição (opcional)</Text>
                 <TextInput
                   value={newListDescription}
                   onChangeText={setNewListDescription}
@@ -176,7 +176,7 @@ export default function CreateListModal({
                   multiline
                 />
 
-                <Text style={[styles.label, { marginTop: 10 }]}>Notificações</Text>
+                <Text style={[styles.label, { marginTop: 10, color: t.text, marginBottom: 8 }]}>Notificações</Text>
 
                 {/* --- Opções de notificação --- */}
                 <View style={styles.notificationOptions}>
@@ -217,7 +217,7 @@ export default function CreateListModal({
                 {/* --- Campos adicionais --- */}
                 {notificationType === 'time' && (
                   <View style={{ marginTop: 16 }}>
-                    <Text style={styles.label}>Data</Text>
+                    <Text style={[styles.label, { color: t.text, marginBottom: 8 }]}>Data</Text>
                     <Pressable
                       style={styles.datePicker}
                       onPress={() => setShowDatePicker(true)}
@@ -239,7 +239,7 @@ export default function CreateListModal({
                       />
                     )}
 
-                    <Text style={[styles.label, { marginTop: 8 }]}>Horário</Text>
+                    <Text style={[styles.label, { marginTop: 8, color: t.text, marginBottom: 8 }]}>Horário</Text>
                     <Pressable
                       style={styles.datePicker}
                       onPress={() => setShowTimePicker(true)}
@@ -262,7 +262,7 @@ export default function CreateListModal({
 
                 {notificationType === 'location' && (
                   <View style={{ marginTop: 16 }}>
-                    <Text style={styles.label}>Local</Text>
+                    <Text style={[styles.label, { color: t.text, marginBottom: 8 }]}>Local</Text>
 
                     {/* Botão que abre o mapa */}
                     <Pressable
@@ -272,14 +272,14 @@ export default function CreateListModal({
                       ]}
                       onPress={() => setIsMapVisible(true)}
                     >
-                      <Text style={{ color: coords ? '#2c3e50' : '#7f8c8d' }}>
+                      <Text style={{ color: coords ? t.text : t.muted }}>
                         {coords
                           ? `📍 ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`
                           : 'Selecionar no mapa'}
                       </Text>
                     </Pressable>
 
-                    <Text style={[styles.label, { marginTop: 8 }]}>
+                    <Text style={[styles.label, { marginTop: 8, color: t.text, marginBottom: 8 }]}> 
                       Distância para notificação (m)
                     </Text>
                     <TextInput
@@ -305,8 +305,8 @@ export default function CreateListModal({
                 <Text style={[styles.buttonText, { color: '#fff' }]}>Criar Lista</Text>
               </Pressable>
             </View>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       {/* --- Modal de seleção de mapa --- */}
@@ -330,8 +330,8 @@ const styles = StyleSheet.create({
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
   modalTitle: { fontSize: 20, fontWeight: 'bold' },
   modalBody: { paddingHorizontal: 20, paddingBottom: 20, maxHeight: '65%' },
-  label: { fontWeight: '600', marginBottom: 8, color: '#2c3e50' },
-  input: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 10, fontSize: 16 },
+  label: { fontWeight: '600', marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 10, fontSize: 16, marginBottom: 12 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -339,8 +339,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
     borderRadius: 10,
-    padding: 12,
-    marginTop: 10,
+    padding: 14,
+    marginTop: 12,
   },
   optionSelected: { borderColor: '#7159c1', backgroundColor: '#f3ecff' },
   optionTitle: { fontWeight: '600', fontSize: 16 },

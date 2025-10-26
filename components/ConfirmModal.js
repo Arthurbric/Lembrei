@@ -17,8 +17,8 @@ export default function DeleteConfirmModal({
       visible={visible}
       onRequestClose={onCancel}
     >
-      <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-        <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+      <Pressable style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]} onPress={onCancel}>
+        <Pressable onPress={() => {}} style={[styles.modalContent, { backgroundColor: t.surface }]}> 
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: t.text }]}>Apagar Lista</Text>
             <Pressable onPress={onCancel}>
@@ -30,7 +30,7 @@ export default function DeleteConfirmModal({
             <Text style={[styles.modalMessage, { color: t.text }]}>Tem certeza que quer apagar esta lista?</Text>
           </View>
 
-          <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
+          <View style={[styles.modalFooter, { borderTopColor: t.border }]}> 
             <Pressable
               onPress={onCancel}
               style={[styles.button, styles.buttonSecondary, { backgroundColor: t.card || '#ecf0f1' }]}
@@ -44,8 +44,8 @@ export default function DeleteConfirmModal({
               <Text style={styles.buttonText}>Apagar</Text>
             </Pressable>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
