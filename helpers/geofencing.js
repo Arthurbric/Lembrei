@@ -1,7 +1,21 @@
+// helpers/geofencing.js
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 import GEOFENCE_TASK from '../utils/geofencingTask';
+
+/**
+ * Inicializa o canal padrão para notificações Android (obrigatório)
+ */
+export async function setupNotificationChannel() {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: true,
+    });
+  }
+}
 
 /**
  * Inicia um geofence para lembrar o usuário quando ele estiver próximo de um local.
@@ -13,7 +27,9 @@ import GEOFENCE_TASK from '../utils/geofencingTask';
  */
 export async function startGeofence({ identifier, latitude, longitude, radius = 300 }) {
   try {
-    // 1️⃣ Solicita permissões de localização
+    await setupNotificationChannel();
+
+    // 1️⃣ Permissões de localização
     const { status: fg } = await Location.requestForegroundPermissionsAsync();
     if (fg !== 'granted') {
       alert('Permissão de localização negada.');
@@ -26,18 +42,21 @@ export async function startGeofence({ identifier, latitude, longitude, radius = 
       return;
     }
 
-    // 2️⃣ Verifica se já está ativo
+    // 2️⃣ Verifica e registra a task se necessário
     const registered = await TaskManager.isTaskRegisteredAsync(GEOFENCE_TASK);
     if (!registered) {
       console.log('🧭 Registrando tarefa de geofencing...');
     }
 
-    // 3️⃣ Cria o geofence (com serviço em foreground para Android)
+    // 3️⃣ Cria identificador único
+    const uniqueId = `${identifier}-${Date.now()}`;
+
+    // 4️⃣ Cria o geofence
     await Location.startGeofencingAsync(
       GEOFENCE_TASK,
       [
         {
-          identifier,
+          identifier: uniqueId,
           latitude,
           longitude,
           radius,
@@ -48,22 +67,26 @@ export async function startGeofence({ identifier, latitude, longitude, radius = 
       {
         foregroundService: {
           notificationTitle: 'Lembrei — Geofencing ativo',
-          notificationBody: `Monitorando a área da lista "${identifier}"`,
-          notificationColor: '#2196F3',
+          notificationBody: `Monitorando a área da lista "${identifier}" (${radius}m)`,
+          notificationColor: '#7159c1',
         },
       }
     );
 
     console.log(`✅ Geofencing iniciado para "${identifier}" em (${latitude}, ${longitude})`);
+
+    // 5️⃣ Notificação e alerta de feedback
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `Lembrete ativado: ${identifier}`,
-        body: `O lembrete da lista "${identifier}" foi ativado para essa localização.`,
+        title: `🛰️ Geofencing ativo`,
+        body: `Monitorando a área de ${radius}m em torno de "${identifier}".`,
       },
       trigger: null,
     });
+
+    alert(`🛰️ Geofencing ativo!\nAguardando proximidade de "${identifier}" (raio de ${radius}m).`);
   } catch (err) {
-    console.error('Erro ao iniciar geofencing:', err);
+    console.error('❌ Erro ao iniciar geofencing:', err);
     alert('Erro ao ativar lembrete de localização.');
   }
 }

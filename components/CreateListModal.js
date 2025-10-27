@@ -3,11 +3,10 @@ import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert, ScrollView 
 import { X, Clock, MapPin, BellOff, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
-import { startGeofence } from '../helpers/geofencing';
+import { startGeofence, setupNotificationChannel } from '../helpers/geofencing';
 import { createList } from '../helpers/lists';
 import { loadLists, saveLists } from '../helpers/storage';
 import MapPickerModal from './MapPickerModal';
-
 
 export default function CreateListModal({
   visible,
@@ -25,15 +24,12 @@ export default function CreateListModal({
   const [selectedTime, setSelectedTime] = useState(null);
   const [location, setLocation] = useState('');
   const [radius, setRadius] = useState('500');
-
+  const [isMapVisible, setIsMapVisible] = useState(false);
+  const [coords, setCoords] = useState(null);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const [isMapVisible, setIsMapVisible] = useState(false);
-  const [coords, setCoords] = useState(null); // latitude/longitude escolhidas
-
-  // --- Handlers ---
   const handleDateChange = (event, date) => {
     setShowDatePicker(false);
     if (date) setSelectedDate(date);
@@ -57,6 +53,8 @@ export default function CreateListModal({
     let notification = { type: 'none' };
 
     try {
+      await setupNotificationChannel();
+
       // ⏰ Notificação por horário
       if (notificationType === 'time' && selectedDate && selectedTime) {
         const [hours, minutes] = selectedTime.split(':').map(Number);
@@ -71,15 +69,16 @@ export default function CreateListModal({
         await Notifications.requestPermissionsAsync();
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: `📋 Lembrete: ${newListName}`,
-            body: `Você tem itens pendentes na lista "${newListName}". Não se esqueça de verificar!`,
-            data: {
-              listName: newListName,
-              description: newListDescription,
-            },
+            title: `⏰ Lembrete: ${newListName}`,
+            body: `Está na hora de revisar a lista "${newListName}".`,
           },
           trigger: { date: dateObj },
         });
+
+        Alert.alert(
+          '⏰ Lembrete agendado',
+          `Você será lembrado em ${dateObj.toLocaleDateString('pt-BR')} às ${dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.`
+        );
       }
 
       // 📍 Notificação por localização (geofencing)
@@ -98,21 +97,12 @@ export default function CreateListModal({
         };
 
         await Notifications.requestPermissionsAsync();
-
-        // usamos o nome da lista como identifier para que a notificação mostre o título da lista
-        const geofenceIdentifier = `${newListName}`;
-
         await startGeofence({
-          identifier: geofenceIdentifier,
+          identifier: newListName,
           latitude: coords?.latitude,
           longitude: coords?.longitude,
           radius: notification.radius,
         });
-
-        Alert.alert(
-          'Geofencing Ativado',
-          `Você será notificado ao se aproximar de "${notification.place}".`
-        );
       }
 
       // 🗂️ Criação da lista + salvamento
@@ -128,6 +118,10 @@ export default function CreateListModal({
       setNewListName('');
       setNewListDescription('');
       setNotificationType('none');
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setCoords(null);
+      setLocation('');
     } catch (err) {
       console.error('❌ Erro ao criar lista:', err);
       Alert.alert('Erro', err?.message || 'Não foi possível criar a lista.');
