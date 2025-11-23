@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { X } from 'lucide-react-native';
+import * as Location from 'expo-location';
+
 
 export default function AllLocationsMapModal({ visible, onClose, lists, theme }) {
   const t = theme || {
@@ -27,35 +29,55 @@ export default function AllLocationsMapModal({ visible, onClose, lists, theme })
   useEffect(() => {
     if (!visible) return;
 
-    const locations = lists
-      .filter((l) => l.notification?.type === 'location')
-      .filter((l) => l.notification.latitude && l.notification.longitude);
+    async function loadInitialPosition() {
+        // tenta pegar listas com geofence
+        const locations = lists
+        .filter((l) => l.notification?.type === 'location')
+        .filter((l) => l.notification.latitude && l.notification.longitude);
 
-    if (locations.length > 0) {
-      const first = locations[0].notification;
-      setInitialRegion({
-        latitude: first.latitude,
-        longitude: first.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
-    } else {
-      // fallback: Brasília
-      setInitialRegion({
-        latitude: -15.7942,
-        longitude: -47.8822,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
+        if (locations.length > 0) {
+        const first = locations[0].notification;
+        setInitialRegion({
+            latitude: first.latitude,
+            longitude: first.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+        });
+        return;
+        }
+
+        // 📌 Se não tiver localização salva → pega localização atual do usuário
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+        console.log("Permissão negada, usando Brasília como fallback.");
+        setInitialRegion({
+            latitude: -15.7942,
+            longitude: -47.8822,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+        });
+        return;
+        }
+
+        const current = await Location.getCurrentPositionAsync({});
+        setInitialRegion({
+        latitude: current.coords.latitude,
+        longitude: current.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+        });
     }
+
+    loadInitialPosition();
   }, [visible]);
+
 
   return (
     <Modal animationType="slide" transparent visible={visible}>
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: t.surface }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderColor: t.border, backgroundColor: t.surface }]}>
             <Text style={[styles.title, { color: t.text }]}>Locais dos lembretes</Text>
             <Pressable onPress={onClose}>
               <X size={24} color={t.muted} />
@@ -127,8 +149,6 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingHorizontal: 18,
     borderBottomWidth: 1,
-    borderColor: '#e0e0e0',
-    backgroundColor: 'transparent',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
