@@ -28,6 +28,7 @@ import {
   removeItem as removeItemHelper,
 } from '../helpers/lists';
 
+import * as Notifications from 'expo-notifications';
 // --- COMPONENT PRINCIPAL DA APLICAÇÃO ---
 export default function App() {
   const insets = useSafeAreaInsets();
@@ -55,6 +56,21 @@ export default function App() {
 
   // Aux
   const [listToDelete, setListToDelete] = useState(null);
+
+  useEffect(() => {
+    async function setupChannel() {
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#7159c1',
+        });
+      }
+    }
+
+    setupChannel();
+  }, []);
 
   // --- PERSISTÊNCIA DE DADOS ---
   useEffect(() => {

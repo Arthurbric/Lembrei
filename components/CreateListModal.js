@@ -19,6 +19,7 @@ export default function CreateListModal({
   theme,
 }) {
   const t = theme || { surface: 'white', text: '#2c3e50', muted: '#7f8c8d', border: '#e0e0e0', primary: '#7159c1', card: '#fafafa' };
+  const isDarkMode = t.surface !== 'white' && t.text === '#ffffff';
   const [notificationType, setNotificationType] = useState('none');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -67,18 +68,19 @@ export default function CreateListModal({
         };
 
         await Notifications.requestPermissionsAsync();
+        await setupNotificationChannel();
+
         await Notifications.scheduleNotificationAsync({
           content: {
             title: `⏰ Lembrete: ${newListName}`,
             body: `Está na hora de revisar a lista "${newListName}".`,
           },
-          trigger: { date: dateObj },
+          trigger: {
+            date: dateObj,
+            channelId: 'default',  // << obrigatório
+          },
         });
 
-        Alert.alert(
-          '⏰ Lembrete agendado',
-          `Você será lembrado em ${dateObj.toLocaleDateString('pt-BR')} às ${dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.`
-        );
       }
 
       // 📍 Notificação por localização (geofencing)
@@ -175,10 +177,17 @@ export default function CreateListModal({
                 {/* --- Opções de notificação --- */}
                 <View style={styles.notificationOptions}>
                   <Pressable
-                    style={[styles.option, notificationType === 'none' && styles.optionSelected, { borderColor: t.border, backgroundColor: notificationType === 'none' ? (t.card) : 'transparent' }]}
+                    style={[
+                      styles.option,
+                      notificationType === 'none' && {
+                        borderColor: t.primary,
+                        backgroundColor: isDarkMode ? 'rgba(113,89,193,0.25)' : '#f3ecff',
+                      },
+                      { borderColor: t.border },
+                    ]}
                     onPress={() => setNotificationType('none')}
                   >
-                    <BellOff size={20} color="#7159c1" />
+                    <BellOff size={20} color={t.primary} />
                     <View>
                       <Text style={[styles.optionTitle, { color: t.text }]}>Sem notificação</Text>
                       <Text style={[styles.optionSubtitle, { color: t.muted }]}>Lista sem lembretes</Text>
@@ -186,10 +195,17 @@ export default function CreateListModal({
                   </Pressable>
 
                   <Pressable
-                    style={[styles.option, notificationType === 'time' && styles.optionSelected, { borderColor: t.border }]}
+                    style={[
+                      styles.option,
+                      notificationType === 'time' && {
+                        borderColor: t.primary,
+                        backgroundColor: isDarkMode ? 'rgba(113,89,193,0.25)' : '#f3ecff',
+                      },
+                      { borderColor: t.border },
+                    ]}
                     onPress={() => setNotificationType('time')}
                   >
-                    <Clock size={20} color="#7159c1" />
+                    <Clock size={20} color={t.primary} />
                     <View>
                       <Text style={[styles.optionTitle, { color: t.text }]}>Notificação por horário</Text>
                       <Text style={[styles.optionSubtitle, { color: t.muted }]}>Lembrete em data e hora específicas</Text>
@@ -197,10 +213,17 @@ export default function CreateListModal({
                   </Pressable>
 
                   <Pressable
-                    style={[styles.option, notificationType === 'location' && styles.optionSelected, { borderColor: t.border }]}
+                    style={[
+                      styles.option,
+                      notificationType === 'location' && {
+                        borderColor: t.primary,
+                        backgroundColor: isDarkMode ? 'rgba(113,89,193,0.25)' : '#f3ecff',
+                      },
+                      { borderColor: t.border },
+                    ]}
                     onPress={() => setNotificationType('location')}
                   >
-                    <MapPin size={20} color="#7159c1" />
+                    <MapPin size={20} color={t.primary} />
                     <View>
                       <Text style={[styles.optionTitle, { color: t.text }]}>Notificação por localização</Text>
                       <Text style={[styles.optionSubtitle, { color: t.muted }]}>Lembrete quando próximo ao local</Text>
