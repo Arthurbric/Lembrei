@@ -25,7 +25,19 @@ function normalizeNotification(notification) {
   if (notification.type === 'location') {
     const place = (notification.place || '').trim();
     const radius = Number(notification.radius) > 0 ? Number(notification.radius) : 500;
-    return { type: 'location', place, radius };
+
+    const latitude =
+      typeof notification.latitude === 'number' ? notification.latitude : null;
+    const longitude =
+      typeof notification.longitude === 'number' ? notification.longitude : null;
+
+    return {
+      type: 'location',
+      place,
+      radius,
+      latitude,
+      longitude,
+    };
   }
 
   return base;

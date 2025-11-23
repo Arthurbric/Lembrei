@@ -12,12 +12,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { List, Plus, ArrowLeft, Trash2, Check, Calendar as CalendarIcon,
-         BellOff, Clock, MapPin, Edit3, Sun, Moon } from 'lucide-react-native';
+         BellOff, Clock, MapPin, Edit3, Sun, Moon, Map } from 'lucide-react-native';
 
 import { styles } from '../styles/AppStyles';
 import DeleteConfirmModal from '../components/ConfirmModal';
 import CreateListModal from '../components/CreateListModal';
 import AddItemModal from '../components/AddItemModal';
+import AllLocationsMapModal from '../components/AllLocationsMapModal';
+
 
 import { loadLists, saveLists } from '../helpers/storage';
 import {
@@ -44,6 +46,7 @@ export default function App() {
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isEditItemModalVisible, setEditItemModalVisible] = useState(false);
   const [isEditListModalVisible, setEditListModalVisible] = useState(false);
+  const [isMapAllVisible, setMapAllVisible] = useState(false);
 
   // Form states
   const [newListName, setNewListName] = useState('');
@@ -491,6 +494,12 @@ export default function App() {
           {currentScreen === 'home' ? 'Minhas Listas' : currentList?.title}
         </Text>
         <Pressable
+          onPress={() => setMapAllVisible(true)}
+          style={{ padding: 8, borderRadius: 8, marginRight: 8 }}
+        >
+          <MapPin size={22} color={appliedTheme.text} />
+        </Pressable>
+        <Pressable
           onPress={toggleDarkMode}
           onLongPress={setAutoMode}
           style={[styles.darkModeButton, { padding: 8, borderRadius: 8 }]}
@@ -562,6 +571,14 @@ export default function App() {
         visible={isDeleteModalVisible}
         onCancel={() => setDeleteModalVisible(false)}
         onConfirm={confirmDeleteList}
+        theme={appliedTheme}
+      />
+
+      {/* MODAL: Mapa com todas as localizações */}
+      <AllLocationsMapModal
+        visible={isMapAllVisible}
+        onClose={() => setMapAllVisible(false)}
+        lists={lists}
         theme={appliedTheme}
       />
     </SafeAreaView>
