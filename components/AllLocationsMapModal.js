@@ -95,6 +95,7 @@ export default function AllLocationsMapModal({ visible, onClose, lists, theme })
               provider={PROVIDER_GOOGLE}
               style={styles.map}
               initialRegion={initialRegion}
+              showsUserLocation={true}
             >
               {/* Desenha todos os locais */}
               {lists

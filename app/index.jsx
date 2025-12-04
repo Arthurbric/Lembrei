@@ -290,7 +290,7 @@ export default function App() {
             <View style={styles.emptyStateIconContainer}>
               <List size={40} color="white" />
             </View>
-            <Text style={[styles.emptyStateTitle, { color: appliedTheme.text }]}>Bem-vindo ao GeoRemind!</Text>
+            <Text style={[styles.emptyStateTitle, { color: appliedTheme.text }]}>Bem-vindo ao Lembrei!</Text>
             <Text style={[styles.emptyStateSubtitle, { color: appliedTheme.muted }]}>
               Crie sua primeira lista clicando no botão '+' abaixo.
             </Text>
@@ -521,6 +521,7 @@ export default function App() {
         newListDescription={newListDescription}
         setNewListDescription={setNewListDescription}
         theme={appliedTheme}
+        isEditing={false}
       />
 
       {/* MODAL: Adicionar Item */}
@@ -564,6 +565,7 @@ export default function App() {
         newListDescription={editedListDescription}
         setNewListDescription={setEditedListDescription}
         theme={appliedTheme}
+        isEditing={true}
       />
 
       {/* MODAL: Confirmar Exclusão */}

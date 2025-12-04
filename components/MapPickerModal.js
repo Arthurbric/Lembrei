@@ -164,6 +164,9 @@ export default function MapPickerModal({ visible, onCancel, onConfirm, theme }) 
           }}
           onPress={handleMapPress}
           onError={handleMapError}
+          showsUserLocation={true}
+          followsUserLocation={false}
+          showsMyLocationButton={true}
         >
           {selectedLocation && (
             <Marker

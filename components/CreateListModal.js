@@ -17,6 +17,7 @@ export default function CreateListModal({
   newListDescription,
   setNewListDescription,
   theme,
+  isEditing = false,
 }) {
   const t = theme || { surface: 'white', text: '#2c3e50', muted: '#7f8c8d', border: '#e0e0e0', primary: '#7159c1', card: '#fafafa' };
   const isDarkMode = t.surface !== 'white' && t.text === '#ffffff';
@@ -144,7 +145,9 @@ export default function CreateListModal({
           <Pressable onPress={() => {}} style={[styles.modalContent, { backgroundColor: t.surface }]}>
             {/* --- Cabeçalho --- */}
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: t.text }]}>Criar Nova Lista</Text>
+              <Text style={[styles.modalTitle, { color: t.text }]}>
+                {isEditing ? "Editar Lista" : "Criar Nova Lista"}
+              </Text>
               <Pressable onPress={onCancel}>
                 <X size={24} color={t.muted} />
               </Pressable>
@@ -319,7 +322,9 @@ export default function CreateListModal({
                 <Text style={[styles.cancelText, { color: t.text }]}>Cancelar</Text>
               </Pressable>
               <Pressable onPress={handleConfirm} style={[styles.button, { backgroundColor: t.primary }]}>
-                <Text style={[styles.buttonText, { color: '#fff' }]}>Criar Lista</Text>
+                <Text style={[styles.buttonText, { color: '#fff' }]}>
+                  {isEditing ? "Salvar" : "Criar Lista"}
+                </Text>
               </Pressable>
             </View>
           </Pressable>
