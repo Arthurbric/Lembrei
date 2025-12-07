@@ -49,7 +49,7 @@ function normalizeNotification(notification) {
 export function createList(title, description = '', notification = { type: 'none' }) {
   const now = new Date();
   return {
-    id: `list-${Date.now()}`,
+    id: `list-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
     title: String(title || '').trim(),
     description: String(description || '').trim(),
     createdAt: now.toLocaleDateString('pt-BR'),

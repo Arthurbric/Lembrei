@@ -31,6 +31,15 @@ import {
 } from '../helpers/lists';
 
 import * as Notifications from 'expo-notifications';
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 // --- COMPONENT PRINCIPAL DA APLICAÇÃO ---
 export default function App() {
   const insets = useSafeAreaInsets();
@@ -73,6 +82,13 @@ export default function App() {
     }
 
     setupChannel();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      console.log("Permissão de notificações:", status);
+    })();
   }, []);
 
   // --- PERSISTÊNCIA DE DADOS ---

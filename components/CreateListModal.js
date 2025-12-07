@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert, ScrollView } from 'react-native';
 import { X, Clock, MapPin, BellOff, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -37,6 +37,24 @@ export default function CreateListModal({
     if (date) setSelectedDate(date);
   };
 
+  useEffect(() => {
+    if (visible && !isEditing) {
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setNotificationType('none');
+      setCoords(null);
+      setLocation('');
+    }
+  
+    if (!visible) {
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setNotificationType('none');
+      setCoords(null);
+      setLocation('');
+    }
+  }, [visible]);
+
   const handleTimeChange = (event, time) => {
     setShowTimePicker(false);
     if (time) {
@@ -55,7 +73,6 @@ export default function CreateListModal({
     let notification = { type: 'none' };
 
     try {
-      await setupNotificationChannel();
 
       // ⏰ Notificação por horário
       if (notificationType === 'time' && selectedDate && selectedTime) {
@@ -68,56 +85,45 @@ export default function CreateListModal({
           dateISO: dateObj.toISOString(),
         };
 
-        await Notifications.requestPermissionsAsync();
-        await setupNotificationChannel();
-
         await Notifications.scheduleNotificationAsync({
           content: {
             title: `⏰ Lembrete: ${newListName}`,
             body: `Está na hora de revisar a lista "${newListName}".`,
+            sound: true,
           },
           trigger: {
+            type: 'date',
             date: dateObj,
-            channelId: 'default',  // << obrigatório
           },
         });
 
-      }
+        console.log('Sucesso!', `Lembrete agendado para ${dateObj.toLocaleDateString('pt-BR')} às ${selectedTime}.`);
 
-      // 📍 Notificação por localização (geofencing)
-      else if (notificationType === 'location') {
-        if (!coords && !location.trim()) {
+      }
+      if (notificationType === 'location') {
+        if (!coords) {
           Alert.alert('Erro', 'Escolha um local ou selecione no mapa.');
           return;
         }
-
+  
         notification = {
           type: 'location',
           place: location || 'Local selecionado no mapa',
-          latitude: coords?.latitude || null,
-          longitude: coords?.longitude || null,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
           radius: parseInt(radius, 10) || 500,
         };
-
-        await Notifications.requestPermissionsAsync();
-        await startGeofence({
-          identifier: newListName,
-          latitude: coords?.latitude,
-          longitude: coords?.longitude,
-          radius: notification.radius,
-        });
       }
-
-      // 🗂️ Criação da lista + salvamento
       const newList = createList(newListName, newListDescription, notification);
       const lists = await loadLists();
-      const updated = [...lists, newList];
-      await saveLists(updated);
-
-      console.log('✅ Nova lista criada:', newList);
+      await saveLists([...lists, newList]);
+  
+      console.log("✅ Nova lista criada:", newList);
+  
+      // Fecha modal na hora (instantâneo)
       onConfirm && onConfirm(newList);
-
-      // resetar campos
+  
+      // Reset campos
       setNewListName('');
       setNewListDescription('');
       setNotificationType('none');
@@ -125,9 +131,24 @@ export default function CreateListModal({
       setSelectedTime(null);
       setCoords(null);
       setLocation('');
+  
+      // -----------------------------
+      // 3️⃣ AGORA SIM → iniciar geofence EM BACKGROUND
+      // -----------------------------
+      if (notificationType === "location") {
+        setTimeout(() => {
+          startGeofence({
+            identifier: newList.title,
+            latitude: notification.latitude,
+            longitude: notification.longitude,
+            radius: notification.radius,
+          });
+        }, 300); // pequeno delay para não travar UI
+      }
+  
     } catch (err) {
-      console.error('❌ Erro ao criar lista:', err);
-      Alert.alert('Erro', err?.message || 'Não foi possível criar a lista.');
+      console.error("❌ Erro ao criar lista:", err);
+      Alert.alert("Erro", err?.message || "Não foi possível criar a lista.");
     }
   };
 

@@ -3,10 +3,15 @@ import { Platform } from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
-import GEOFENCE_TASK from '../utils/geofencingTask';
+import '../utils/geofencingTask.js';
+
+
+// ⚠ NÃO importar default do geofencingTask (era só a string!)
+// Agora importamos APENAS o nome da task:
+export const GEOFENCE_TASK = 'LEMBREI_GEOFENCE_TASK';
 
 /**
- * Inicializa o canal padrão para notificações Android (obrigatório)
+ * Configura canal Android (obrigatório)
  */
 export async function setupNotificationChannel() {
   if (Platform.OS === 'android') {
@@ -19,18 +24,30 @@ export async function setupNotificationChannel() {
 }
 
 /**
- * Inicia um geofence para lembrar o usuário quando ele estiver próximo de um local.
- * @param {Object} params
- * @param {string} params.identifier - Nome do local (ex: "Supermercado")
- * @param {number} params.latitude - Latitude do ponto
- * @param {number} params.longitude - Longitude do ponto
- * @param {number} params.radius - Raio da região em metros (ex: 200)
+ * Função utilitária: calcula distância entre 2 pontos (Haversine)
+ */
+function haversineDistance(a, b) {
+  const R = 6371e3; // metros
+  const φ1 = a.lat * Math.PI / 180;
+  const φ2 = b.lat * Math.PI / 180;
+  const Δφ = (b.lat - a.lat) * Math.PI / 180;
+  const Δλ = (b.lon - a.lon) * Math.PI / 180;
+
+  const x =
+    Math.sin(Δφ / 2) ** 2 +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+
+/**
+ * Inicia o geofence
  */
 export async function startGeofence({ identifier, latitude, longitude, radius = 300 }) {
   try {
     await setupNotificationChannel();
 
-    // 1️⃣ Permissões de localização
+    // Permissões de localização
     const { status: fg } = await Location.requestForegroundPermissionsAsync();
     if (fg !== 'granted') {
       alert('Permissão de localização negada.');
@@ -43,16 +60,16 @@ export async function startGeofence({ identifier, latitude, longitude, radius = 
       return;
     }
 
-    // 2️⃣ Verifica e registra a task se necessário
-    const registered = await TaskManager.isTaskRegisteredAsync(GEOFENCE_TASK);
-    if (!registered) {
-      console.log('🧭 Registrando tarefa de geofencing...');
+    // Verifica se a task existe
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(GEOFENCE_TASK);
+    if (!isRegistered) {
+      console.log('⚠ A task ainda não foi registrada! Verifique import no App.js.');
     }
 
-    // 3️⃣ Cria identificador único
+    // Criar identificador único por lista
     const uniqueId = `${identifier}-${Date.now()}`;
 
-    // 4️⃣ Cria o geofence
+    // REGISTRA O GEOFENCE
     await Location.startGeofencingAsync(
       GEOFENCE_TASK,
       [
@@ -68,24 +85,43 @@ export async function startGeofence({ identifier, latitude, longitude, radius = 
       {
         foregroundService: {
           notificationTitle: 'Lembrei — Geofencing ativo',
-          notificationBody: `Monitorando a área da lista "${identifier}" (${radius}m)`,
+          notificationBody: `Monitorando a área de "${identifier}" (${radius}m)`,
           notificationColor: '#7159c1',
         },
       }
     );
 
-    console.log(`✅ Geofencing iniciado para "${identifier}" em (${latitude}, ${longitude})`);
+    console.log(`✅ Geofencing iniciado para "${identifier}"`);
 
-    // 5️⃣ Notificação e alerta de feedback
+    // Feedback
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `🛰️ Geofencing ativo`,
-        body: `Monitorando a área de ${radius}m em torno de "${identifier}".`,
+        title: '🛰️ Geofencing ativo',
+        body: `O app está monitorando a área de "${identifier}".`,
       },
       trigger: null,
     });
 
-    alert(`🛰️ Geofencing ativo!\nAguardando proximidade de "${identifier}" (raio de ${radius}m).`);
+    // ⚠ Dispara notificação imediata se já estiver dentro da área
+    const current = await Location.getCurrentPositionAsync({});
+    const distance = haversineDistance(
+      { lat: current.coords.latitude, lon: current.coords.longitude },
+      { lat: latitude, lon: longitude }
+    );
+
+    console.log(`📏 Distância atual até "${identifier}": ${distance.toFixed(1)}m`);
+
+    if (distance <= radius) {
+      console.log('📍 Usuário JÁ ESTÁ dentro da região. Disparando ENTER imediato.');
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `📍 Lembrete: ${identifier}`,
+          body: `Você já está no local configurado.`,
+        },
+        trigger: null,
+      });
+    }
+
   } catch (err) {
     console.error('❌ Erro ao iniciar geofencing:', err);
     alert('Erro ao ativar lembrete de localização.');
