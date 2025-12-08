@@ -2,30 +2,46 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
-import { ToastAndroid, Platform, Alert } from 'react-native';
 
 export const GEOFENCE_TASK = 'LEMBREI_GEOFENCE_TASK';
 
-function showMessage(msg) {
-  if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
-  else Alert.alert('Lembrei', msg);
+// Mensagens aleatórias ao entrar no local
+const RANDOM_GEOFENCE_MESSAGES = [
+  'Você chegou! Veja a lista "{{name}}" agora.',
+  'Perfeito! O local da lista {{name}} foi alcançado.',
+  'Parece um bom momento para abrir a lista {{name}} 😉',
+  'Estamos no ponto certo! Abra a lista {{name}}.',
+  'Bingo! Você está no local da lista {{name}}.',
+  'Aproveite! Sua lista {{name}} está pronta para ser usada.',
+  'Hora perfeita para conferir: {{name}} 📌',
+  'Você marcou presença no local da lista {{name}}!',
+  'Chegamos! Veja os itens da lista {{name}}.',
+  'O local corresponde: hora de ver a lista {{name}}!'
+];
+
+function randomGeofenceMessage(name) {
+  const msg = RANDOM_GEOFENCE_MESSAGES[Math.floor(Math.random() * RANDOM_GEOFENCE_MESSAGES.length)];
+  return msg.replace('{{name}}', name);
 }
 
-TaskManager.defineTask(GEOFENCE_TASK, async ({ data: { eventType, region }, error }) => {
+TaskManager.defineTask(GEOFENCE_TASK, async ({ data, error }) => {
   if (error) {
-    console.error('Erro no geofencing:', error);
+    console.error("❌ Erro no geofencing task:", error);
     return;
   }
 
-  console.log('📡 Evento geofence detectado:', eventType, region);
+  const { eventType, region } = data;
 
-  if (eventType === TaskManager.LocationGeofencingEventType.Enter) {
-    showMessage(`📍 Você chegou perto de "${region.identifier.split('-')[0]}"`);
+  const listName = region?.metadata?.listName || "Lista";
+
+  if (eventType === Location.GeofencingEventType.Enter) {
+    console.log("📍 Entrou na região da lista:", listName);
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `📍 Lembrete: ${region.identifier.split('-')[0]}`,
-        body: 'Você está próximo do local configurado.',
+        title: "📍 Você chegou ao local!",
+        body: randomGeofenceMessage(listName),
+        sound: true,
       },
       trigger: null,
     });

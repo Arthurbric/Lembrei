@@ -8,6 +8,28 @@ import { createList } from '../helpers/lists';
 import { loadLists, saveLists } from '../helpers/storage';
 import MapPickerModal from './MapPickerModal';
 
+const RANDOM_TIME_MESSAGES = [
+  'Não esqueça da lista: {{name}}!',
+  'Hora de revisar a lista {{name}} ⏰',
+  'Que tal conferir a lista {{name}} agora?',
+  'Momento perfeito para usar a lista {{name}} 😉',
+  'Ei! Sua lista {{name}} está te esperando.',
+  'Lembrete amigável: verifique a lista {{name}}.',
+  'Você programou este lembrete. Veja a lista {{name}} 👀',
+  'Organize seu dia com a lista {{name}}.',
+  'Respira fundo e confere a lista {{name}} 🙂',
+  'Antes de seguir, dá uma olhada na lista {{name}} 📌'
+];
+
+function getRandomTimeMessage(listName) {
+  const template =
+    RANDOM_TIME_MESSAGES[
+      Math.floor(Math.random() * RANDOM_TIME_MESSAGES.length)
+    ];
+  return template.replace('{{name}}', listName);
+}
+
+
 export default function CreateListModal({
   visible,
   onCancel,
@@ -109,7 +131,7 @@ export default function CreateListModal({
         await Notifications.scheduleNotificationAsync({
           content: {
             title: `⏰ Lembrete: ${newListName}`,
-            body: `Está na hora de revisar a lista "${newListName}".`,
+            body: getRandomTimeMessage(newListName),
             sound: true,
           },
           trigger: { type: 'date', date: dateObj },
@@ -158,6 +180,7 @@ export default function CreateListModal({
         setTimeout(() => {
           startGeofence({
             identifier: newList.id,
+            listName: newList.title,
             latitude: notification.latitude,
             longitude: notification.longitude,
             radius: notification.radius,

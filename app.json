@@ -49,18 +49,12 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      // 💡 CORREÇÃO: O plugin expo-notifications foi movido para o formato de array
-      // para incluir as opções de ícone, cor e sons.
       [
         "expo-notifications",
         {
-          "icon": "./local/assets/notification_icon.png",
+          "icon": "./assets/images/icon.png",
           "color": "#ffffff",
           "defaultChannel": "default",
-          "sounds": [
-            "./local/assets/notification_sound.wav",
-            "./local/assets/notification_sound_other.wav"
-          ],
           "enableBackgroundRemoteNotifications": false
         }
       ]
