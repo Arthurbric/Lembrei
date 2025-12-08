@@ -1,5 +1,6 @@
 // helpers/storage.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { updateList } from './lists';
 
 export const STORAGE_KEY = '@LimbreiLists';
 
@@ -39,5 +40,20 @@ export async function clearLists() {
     await AsyncStorage.removeItem(STORAGE_KEY);
   } catch (err) {
     console.error('❌ Erro ao limpar listas:', err);
+  }
+}
+
+/**
+ * Atualiza uma lista pelo ID e salva no storage.
+ */
+export async function saveUpdatedList(listId, changes) {
+  try {
+    const lists = await loadLists();
+    const updated = updateList(lists, listId, changes);
+    await saveLists(updated);
+    return updated;
+  } catch (err) {
+    console.error("❌ Erro ao atualizar lista:", err);
+    return null;
   }
 }

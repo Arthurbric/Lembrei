@@ -111,3 +111,11 @@ export function removeItem(lists, listId, itemId) {
       : list
   );
 }
+
+export function updateList(lists, id, newData) {
+  return lists.map(list =>
+    list.id === id
+      ? { ...list, ...newData, notification: normalizeNotification(newData.notification) }
+      : list
+  );
+}

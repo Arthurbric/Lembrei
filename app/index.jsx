@@ -28,6 +28,7 @@ import {
   toggleItem as toggleItemHelper,
   removeList as removeListHelper,
   removeItem as removeItemHelper,
+  updateList,
 } from '../helpers/lists';
 
 import * as Notifications from 'expo-notifications';
@@ -575,7 +576,13 @@ export default function App() {
           setEditedListName('');
           setEditedListDescription('');
         }}
-        onConfirm={handleSaveList}
+        onConfirm={(updatedList) => {
+          setLists(prev => 
+            prev.map(l => l.id === updatedList.id ? updatedList : l)
+          );
+          setEditListModalVisible(false);
+        }}
+        originalList={listToEdit}
         newListName={editedListName}
         setNewListName={setEditedListName}
         newListDescription={editedListDescription}
